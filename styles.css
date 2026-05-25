@@ -213,8 +213,7 @@ h3 {
   box-shadow: var(--shadow);
 }
 
-.auth-form,
-.session-box {
+.cloud-actions {
   display: flex;
   align-items: end;
   justify-content: flex-end;
@@ -222,37 +221,14 @@ h3 {
   flex-wrap: wrap;
 }
 
-.auth-form label {
-  display: grid;
-  gap: 6px;
-  min-width: 180px;
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.auth-form input {
-  width: 100%;
-  min-height: 42px;
-  padding: 10px 11px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface-2);
-  color: var(--ink);
-  outline: none;
-}
-
-.session-box {
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.session-box span {
+.cloud-actions span {
   max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .hero-panel {
@@ -725,8 +701,7 @@ h3 {
   }
 
   .top-actions,
-  .auth-form,
-  .session-box,
+  .cloud-actions,
   .day-nav {
     justify-content: start;
   }
@@ -742,23 +717,12 @@ h3 {
     justify-content: space-between;
   }
 
-  .auth-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: end;
-  }
-
-  .auth-form label {
-    grid-column: 1 / -1;
-    min-width: 0;
-  }
-
-  .session-box {
+  .cloud-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
 
-  .session-box span {
+  .cloud-actions span {
     grid-column: 1 / -1;
     max-width: 100%;
   }

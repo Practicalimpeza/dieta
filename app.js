@@ -1,8 +1,8 @@
 const STORAGE_KEY = "plano-45-dias:v1";
-const AUTH_STORAGE_KEY = "plano-45-dias:supabase-session";
 const SUPABASE_URL = "https://pjmaoqysyspbmdefygxd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nio0RbbeRBusnXhTf-P5hA_Fpv8gA_1";
-const CLOUD_TABLE = "diet_states";
+const CLOUD_TABLE = "diet_app_state";
+const CLOUD_STATE_ID = "principal";
 const TOTAL_DAYS = 45;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFEED_DAYS = [12, 24, 36];
@@ -118,7 +118,6 @@ const alertChecks = [
 ];
 
 let state = loadState();
-let authSession = loadAuthSession();
 let syncTimer = null;
 let syncInFlight = false;
 let syncAgain = false;
@@ -126,14 +125,7 @@ let syncAgain = false;
 const els = {
   startDate: document.querySelector("#startDate"),
   syncStatus: document.querySelector("#syncStatus"),
-  authForm: document.querySelector("#authForm"),
-  authEmail: document.querySelector("#authEmail"),
-  authPassword: document.querySelector("#authPassword"),
-  signUpBtn: document.querySelector("#signUpBtn"),
-  sessionBox: document.querySelector("#sessionBox"),
-  sessionEmail: document.querySelector("#sessionEmail"),
   syncNowBtn: document.querySelector("#syncNowBtn"),
-  signOutBtn: document.querySelector("#signOutBtn"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   dayTitle: document.querySelector("#dayTitle"),
   progressBar: document.querySelector("#progressBar"),
@@ -192,86 +184,12 @@ function saveState(options = {}) {
   if (options.cloud !== false) scheduleCloudSave();
 }
 
-function loadAuthSession() {
-  try {
-    return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
-  } catch {
-    return null;
-  }
-}
-
-function saveAuthSession(session) {
-  authSession = normalizeSession(session);
-  if (authSession) localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authSession));
-  else localStorage.removeItem(AUTH_STORAGE_KEY);
-  renderAuthPanel();
-}
-
-function normalizeSession(session) {
-  if (!session || !session.access_token || !session.refresh_token) return null;
-  return {
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    expires_at: session.expires_at
-      ? session.expires_at * 1000
-      : Date.now() + (session.expires_in || 3600) * 1000,
-    user: session.user || userFromAccessToken(session.access_token) || authSession?.user || null,
-  };
-}
-
-function appRedirectUrl() {
-  return `${window.location.origin}${window.location.pathname}`;
-}
-
-function readAuthRedirect() {
-  if (!window.location.hash || !window.location.hash.includes("access_token=")) return;
-
-  const params = new URLSearchParams(window.location.hash.slice(1));
-  const accessToken = params.get("access_token");
-  const refreshToken = params.get("refresh_token");
-  if (!accessToken || !refreshToken) return;
-
-  saveAuthSession({
-    access_token: accessToken,
-    refresh_token: refreshToken,
-    expires_at: Number(params.get("expires_at")) || undefined,
-    expires_in: Number(params.get("expires_in")) || 3600,
-    token_type: params.get("token_type") || "bearer",
-    user: userFromAccessToken(accessToken),
-  });
-
-  window.history.replaceState(null, document.title, `${window.location.pathname}${window.location.search}`);
-}
-
-function userFromAccessToken(token) {
-  try {
-    const payload = JSON.parse(base64UrlDecode(token.split(".")[1]));
-    return {
-      id: payload.sub,
-      email: payload.email,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function base64UrlDecode(value) {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
-  return decodeURIComponent(
-    atob(padded)
-      .split("")
-      .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
-      .join(""),
-  );
-}
-
 async function supabaseRequest(path, options = {}) {
   const headers = {
     apikey: SUPABASE_KEY,
+    Authorization: `Bearer ${SUPABASE_KEY}`,
     "Content-Type": "application/json",
   };
-  if (options.token) headers.Authorization = `Bearer ${options.token}`;
   if (options.prefer) headers.Prefer = options.prefer;
 
   const response = await fetch(`${SUPABASE_URL}${path}`, {
@@ -293,94 +211,27 @@ async function supabaseRequest(path, options = {}) {
   return payload;
 }
 
-async function ensureSession() {
-  if (!authSession?.access_token) return null;
-
-  const expiresSoon = authSession.expires_at && authSession.expires_at - Date.now() < 60_000;
-  if (!expiresSoon) return authSession;
-
-  try {
-    const refreshed = await supabaseRequest("/auth/v1/token?grant_type=refresh_token", {
-      method: "POST",
-      body: { refresh_token: authSession.refresh_token },
-    });
-    saveAuthSession(refreshed);
-    return authSession;
-  } catch (error) {
-    clearAuthSession();
-    setSyncStatus("Sessão expirada. Entre de novo.", "warn");
-    throw error;
-  }
-}
-
-function clearAuthSession() {
-  authSession = null;
-  localStorage.removeItem(AUTH_STORAGE_KEY);
-  renderAuthPanel();
-}
-
-function renderAuthPanel() {
-  const signedIn = Boolean(authSession?.access_token && authSession?.user);
-  els.authForm.hidden = signedIn;
-  els.sessionBox.hidden = !signedIn;
-  els.sessionEmail.textContent = signedIn ? authSession.user.email || "Conta conectada" : "";
-  if (!signedIn) setSyncStatus("Modo local", "local");
-}
-
 function setSyncStatus(text, mode = "local") {
   els.syncStatus.textContent = text;
   els.syncStatus.dataset.mode = mode;
 }
 
 async function bootCloudSync() {
-  renderAuthPanel();
-  if (!authSession?.access_token) return;
-
   try {
-    await ensureSession();
     await loadCloudState();
   } catch (error) {
+    const tableMissing = error.status === 404 || String(error.message).includes(CLOUD_TABLE);
+    setSyncStatus(tableMissing ? "Banco não configurado" : "Modo local", tableMissing ? "error" : "local");
     console.warn("Sincronização inicial falhou.", error);
   }
 }
 
-async function signIn(email, password) {
-  setSyncStatus("Entrando...", "pending");
-  const session = await supabaseRequest("/auth/v1/token?grant_type=password", {
-    method: "POST",
-    body: { email, password },
-  });
-  saveAuthSession(session);
-  await loadCloudState();
-}
-
-async function signUp(email, password) {
-  setSyncStatus("Criando conta...", "pending");
-  const redirectTo = encodeURIComponent(appRedirectUrl());
-  const response = await supabaseRequest(`/auth/v1/signup?redirect_to=${redirectTo}`, {
-    method: "POST",
-    body: { email, password },
-  });
-
-  const session = response?.session || response;
-  if (session?.access_token) {
-    saveAuthSession(session);
-    await loadCloudState();
-    return;
-  }
-
-  setSyncStatus("Conta criada. Confirme o email e entre.", "pending");
-}
-
 async function loadCloudState() {
-  const session = await ensureSession();
-  if (!session?.user?.id) return;
-
   setSyncStatus("Carregando nuvem...", "pending");
-  const query = `/rest/v1/${CLOUD_TABLE}?select=state,updated_at&user_id=eq.${encodeURIComponent(
-    session.user.id,
+  const query = `/rest/v1/${CLOUD_TABLE}?select=state,updated_at&id=eq.${encodeURIComponent(
+    CLOUD_STATE_ID,
   )}&limit=1`;
-  const rows = await supabaseRequest(query, { token: session.access_token });
+  const rows = await supabaseRequest(query);
 
   if (rows?.[0]?.state) {
     state = mergeStates(state, rows[0].state);
@@ -431,7 +282,6 @@ function newerTimestamp(a, b) {
 }
 
 function scheduleCloudSave() {
-  if (!authSession?.access_token) return;
   setSyncStatus("Alterações pendentes...", "pending");
   window.clearTimeout(syncTimer);
   syncTimer = window.setTimeout(() => {
@@ -440,7 +290,6 @@ function scheduleCloudSave() {
 }
 
 async function syncNow() {
-  if (!authSession?.access_token) return;
   if (syncInFlight) {
     syncAgain = true;
     return;
@@ -450,17 +299,13 @@ async function syncNow() {
   syncAgain = false;
 
   try {
-    const session = await ensureSession();
-    if (!session?.user?.id) return;
-
     setSyncStatus("Salvando na nuvem...", "pending");
-    await supabaseRequest(`/rest/v1/${CLOUD_TABLE}?on_conflict=user_id`, {
+    await supabaseRequest(`/rest/v1/${CLOUD_TABLE}?on_conflict=id`, {
       method: "POST",
-      token: session.access_token,
       prefer: "resolution=merge-duplicates,return=minimal",
       body: [
         {
-          user_id: session.user.id,
+          id: CLOUD_STATE_ID,
           state,
           updated_at: new Date().toISOString(),
         },
@@ -1073,55 +918,8 @@ els.todayBtn.addEventListener("click", () => {
   render();
 });
 
-els.authForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const email = els.authEmail.value.trim();
-  const password = els.authPassword.value;
-  if (!email || !password) return;
-
-  try {
-    await signIn(email, password);
-    els.authPassword.value = "";
-  } catch (error) {
-    setSyncStatus("Email ou senha inválidos", "error");
-    console.warn("Falha ao entrar.", error);
-  }
-});
-
-els.signUpBtn.addEventListener("click", async () => {
-  const email = els.authEmail.value.trim();
-  const password = els.authPassword.value;
-  if (!email || !password) {
-    setSyncStatus("Informe email e senha", "error");
-    return;
-  }
-
-  try {
-    await signUp(email, password);
-    els.authPassword.value = "";
-  } catch (error) {
-    setSyncStatus("Não foi possível criar conta", "error");
-    console.warn("Falha ao criar conta.", error);
-  }
-});
-
 els.syncNowBtn.addEventListener("click", () => {
   syncNow().catch((error) => console.warn("Falha na sincronização manual.", error));
-});
-
-els.signOutBtn.addEventListener("click", async () => {
-  try {
-    if (authSession?.access_token) {
-      await supabaseRequest("/auth/v1/logout", {
-        method: "POST",
-        token: authSession.access_token,
-      });
-    }
-  } catch (error) {
-    console.warn("Falha ao encerrar sessão no Supabase.", error);
-  } finally {
-    clearAuthSession();
-  }
 });
 
 els.exportBtn.addEventListener("click", () => {
@@ -1172,11 +970,7 @@ function normalizeImportedState(imported) {
 }
 
 els.resetBtn.addEventListener("click", () => {
-  const confirmed = window.confirm(
-    authSession?.access_token
-      ? "Limpar registros deste navegador e substituir a nuvem por um plano vazio?"
-      : "Limpar todos os registros deste navegador?",
-  );
+  const confirmed = window.confirm("Limpar registros deste navegador e substituir a nuvem por um plano vazio?");
   if (!confirmed) return;
   localStorage.removeItem(STORAGE_KEY);
   state = loadState();
@@ -1185,7 +979,6 @@ els.resetBtn.addEventListener("click", () => {
   render();
 });
 
-readAuthRedirect();
 saveState({ cloud: false });
 render();
 bootCloudSync();

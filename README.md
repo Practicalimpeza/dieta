@@ -22,14 +22,14 @@ https://practicalimpeza.github.io/dieta/
 
 ## Sincronização
 
-O app salva no navegador e, quando você entra com uma conta Supabase, sincroniza automaticamente com a tabela `diet_states`.
+O app salva no navegador e sincroniza automaticamente com uma linha pública no Supabase, na tabela `diet_app_state`.
 
 Para ativar a nuvem, rode uma vez o SQL em `supabase/schema.sql` no SQL Editor do Supabase.
 
 Depois:
 
 1. Abra o app.
-2. Crie uma conta com email e senha.
-3. Entre com a mesma conta no celular e no PC.
+2. Use normalmente no celular ou no PC.
+3. O botão `Sincronizar` força uma atualização manual se precisar.
 
-O botão `Backup` continua disponível como segurança manual, mas não é mais necessário para sincronizar entre aparelhos.
+O botão `Backup` continua disponível como segurança manual, mas não é necessário para sincronizar entre aparelhos.

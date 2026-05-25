@@ -10,8 +10,8 @@
     <link rel="icon" href="assets/mark.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/mark.svg" />
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css" />
-    <script defer src="app.js"></script>
+    <link rel="stylesheet" href="styles.css?v=4" />
+    <script defer src="app.js?v=4"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -39,27 +39,13 @@
       <section class="sync-panel" aria-labelledby="syncHeading">
         <div>
           <p class="eyebrow">Sincronização</p>
-          <h2 id="syncHeading">Nuvem</h2>
-          <p id="syncStatus" class="muted">Modo local</p>
+          <h2 id="syncHeading">Nuvem automática</h2>
+          <p id="syncStatus" class="muted">Carregando nuvem...</p>
         </div>
 
-        <form class="auth-form" id="authForm">
-          <label>
-            <span>Email</span>
-            <input id="authEmail" type="email" autocomplete="email" required />
-          </label>
-          <label>
-            <span>Senha</span>
-            <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required />
-          </label>
-          <button class="ghost-button strong" id="signInBtn" type="submit">Entrar</button>
-          <button class="ghost-button" id="signUpBtn" type="button">Criar conta</button>
-        </form>
-
-        <div class="session-box" id="sessionBox" hidden>
-          <span id="sessionEmail"></span>
+        <div class="cloud-actions">
+          <span>Plano compartilhado entre celular e PC</span>
           <button class="ghost-button" id="syncNowBtn" type="button">Sincronizar</button>
-          <button class="ghost-button danger" id="signOutBtn" type="button">Sair</button>
         </div>
       </section>
 
