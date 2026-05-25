@@ -1,0 +1,18 @@
+{
+  "name": "Plano 45 Dias",
+  "short_name": "Plano 45",
+  "description": "Acompanhamento diário de dieta, treino, cardio e métricas.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f4",
+  "theme_color": "#2f7d62",
+  "icons": [
+    {
+      "src": "assets/mark.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
