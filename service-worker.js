@@ -1,9 +1,9 @@
-const CACHE_NAME = "plano-45-dias-v6";
+const CACHE_NAME = "plano-45-dias-v7";
 const APP_ASSETS = [
   "./",
   "index.html",
-  "styles.css?v=6",
-  "app.js?v=6",
+  "styles.css",
+  "app.js",
   "manifest.json",
   "assets/mark.svg",
 ];
@@ -28,6 +28,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  if (new URL(event.request.url).origin !== self.location.origin) return;
 
   event.respondWith(
     fetch(event.request)

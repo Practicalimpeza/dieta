@@ -1,8 +1,8 @@
 const STORAGE_KEY = "plano-45-dias:v1";
 const SUPABASE_URL = "https://pjmaoqysyspbmdefygxd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nio0RbbeRBusnXhTf-P5hA_Fpv8gA_1";
-const CLOUD_TABLE = "diet_app_state";
-const CLOUD_STATE_ID = "principal";
+const CLOUD_TABLE = "dieta";
+const CLOUD_STATE_ID = 1;
 const TOTAL_DAYS = 45;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFEED_DAYS = [12, 24, 36];
@@ -122,6 +122,8 @@ let syncTimer = null;
 let syncInFlight = false;
 let syncAgain = false;
 
+cleanVersionParam();
+
 const els = {
   startDate: document.querySelector("#startDate"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
@@ -147,7 +149,15 @@ const els = {
   prevDayBtn: document.querySelector("#prevDayBtn"),
   todayBtn: document.querySelector("#todayBtn"),
   nextDayBtn: document.querySelector("#nextDayBtn"),
+  cloudStatus: document.querySelector("#cloudStatus"),
 };
+
+function cleanVersionParam() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("v")) return;
+  url.searchParams.delete("v");
+  window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
+}
 
 function loadState() {
   const today = toISO(new Date());
@@ -207,14 +217,27 @@ async function supabaseRequest(path, options = {}) {
 function setSyncStatus(text, mode = "local") {
   document.documentElement.dataset.syncStatus = mode;
   document.documentElement.dataset.syncLabel = text;
+  if (!els.cloudStatus) return;
+
+  if (mode === "error") {
+    els.cloudStatus.textContent =
+      text === "Banco não configurado"
+        ? "Nuvem pendente: rode o SQL do Supabase uma vez."
+        : "Nuvem com falha: dados salvos neste aparelho.";
+    els.cloudStatus.hidden = false;
+    return;
+  }
+
+  els.cloudStatus.textContent = "";
+  els.cloudStatus.hidden = true;
 }
 
 async function bootCloudSync() {
   try {
     await loadCloudState();
   } catch (error) {
-    const tableMissing = error.status === 404 || String(error.message).includes(CLOUD_TABLE);
-    setSyncStatus(tableMissing ? "Banco não configurado" : "Modo local", tableMissing ? "error" : "local");
+    const needsSetup = cloudNeedsSetup(error);
+    setSyncStatus(needsSetup ? "Banco não configurado" : "Falha ao sincronizar", "error");
     console.warn("Sincronização inicial falhou.", error);
   }
 }
@@ -306,8 +329,7 @@ async function syncNow() {
     });
     setSyncStatus("Sincronizado", "ok");
   } catch (error) {
-    const tableMissing = error.status === 404 || String(error.message).includes(CLOUD_TABLE);
-    setSyncStatus(tableMissing ? "Banco não configurado" : "Falha ao sincronizar", "error");
+    setSyncStatus(cloudNeedsSetup(error) ? "Banco não configurado" : "Falha ao sincronizar", "error");
     throw error;
   } finally {
     syncInFlight = false;
@@ -316,6 +338,11 @@ async function syncNow() {
       await syncNow();
     }
   }
+}
+
+function cloudNeedsSetup(error) {
+  const message = String(error?.message || "");
+  return error?.status === 404 || message.includes("does not exist") || message.includes(CLOUD_TABLE);
 }
 
 function toISO(date) {

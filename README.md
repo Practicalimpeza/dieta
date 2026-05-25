@@ -1,6 +1,6 @@
 # Plano 45 Dias
 
-Webapp estático para acompanhar dieta, cardio, treino, refeed, métricas e sinais de excesso durante o ciclo de 45 dias.
+Webapp estático para acompanhar dieta, cardio, treino, água, métricas e sinais de excesso durante o ciclo de 45 dias.
 
 ## Como usar
 
@@ -22,7 +22,7 @@ https://practicalimpeza.github.io/dieta/
 
 ## Sincronização
 
-O app salva no navegador e sincroniza automaticamente com uma linha pública no Supabase, na tabela `diet_app_state`.
+O app salva no navegador e sincroniza automaticamente com uma linha pública no Supabase, na tabela `dieta`, usando o registro `id = 1`.
 
 Para ativar a nuvem, rode uma vez o SQL em `supabase/schema.sql` no SQL Editor do Supabase.
 
@@ -30,6 +30,4 @@ Depois:
 
 1. Abra o app.
 2. Use normalmente no celular ou no PC.
-3. O botão `Sincronizar` força uma atualização manual se precisar.
-
-O botão `Backup` continua disponível como segurança manual, mas não é necessário para sincronizar entre aparelhos.
+3. Ao marcar algo em um aparelho, o outro carrega o progresso pela nuvem.

@@ -124,6 +124,24 @@ h3 {
   justify-content: flex-end;
 }
 
+.cloud-status {
+  max-width: 260px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--red) 30%, var(--line));
+  border-radius: 8px;
+  background: var(--red-soft);
+  color: var(--red);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.cloud-status:empty,
+.cloud-status[hidden] {
+  display: none;
+}
+
 .date-control {
   display: flex;
   align-items: center;
@@ -704,6 +722,11 @@ h3 {
   .date-control {
     grid-column: 1 / -1;
     justify-content: space-between;
+  }
+
+  .cloud-status {
+    grid-column: 1 / -1;
+    max-width: none;
   }
 
   .ghost-button {
