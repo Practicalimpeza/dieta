@@ -215,8 +215,55 @@ function normalizeSession(session) {
     expires_at: session.expires_at
       ? session.expires_at * 1000
       : Date.now() + (session.expires_in || 3600) * 1000,
-    user: session.user || authSession?.user || null,
+    user: session.user || userFromAccessToken(session.access_token) || authSession?.user || null,
   };
+}
+
+function appRedirectUrl() {
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+function readAuthRedirect() {
+  if (!window.location.hash || !window.location.hash.includes("access_token=")) return;
+
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  if (!accessToken || !refreshToken) return;
+
+  saveAuthSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    expires_at: Number(params.get("expires_at")) || undefined,
+    expires_in: Number(params.get("expires_in")) || 3600,
+    token_type: params.get("token_type") || "bearer",
+    user: userFromAccessToken(accessToken),
+  });
+
+  window.history.replaceState(null, document.title, `${window.location.pathname}${window.location.search}`);
+}
+
+function userFromAccessToken(token) {
+  try {
+    const payload = JSON.parse(base64UrlDecode(token.split(".")[1]));
+    return {
+      id: payload.sub,
+      email: payload.email,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function base64UrlDecode(value) {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  return decodeURIComponent(
+    atob(padded)
+      .split("")
+      .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
+      .join(""),
+  );
 }
 
 async function supabaseRequest(path, options = {}) {
@@ -309,7 +356,8 @@ async function signIn(email, password) {
 
 async function signUp(email, password) {
   setSyncStatus("Criando conta...", "pending");
-  const response = await supabaseRequest("/auth/v1/signup", {
+  const redirectTo = encodeURIComponent(appRedirectUrl());
+  const response = await supabaseRequest(`/auth/v1/signup?redirect_to=${redirectTo}`, {
     method: "POST",
     body: { email, password },
   });
@@ -1137,6 +1185,7 @@ els.resetBtn.addEventListener("click", () => {
   render();
 });
 
+readAuthRedirect();
 saveState({ cloud: false });
 render();
 bootCloudSync();
