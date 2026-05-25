@@ -456,6 +456,28 @@ h3 {
   line-height: 1.35;
 }
 
+.water-row {
+  border-color: #cddfd5;
+  background: var(--green-soft);
+}
+
+.water-progress {
+  display: block;
+  width: 100%;
+  height: 8px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(47, 125, 98, 0.16);
+}
+
+.water-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--green);
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

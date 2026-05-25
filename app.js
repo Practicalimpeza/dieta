@@ -6,6 +6,9 @@ const CLOUD_STATE_ID = "principal";
 const TOTAL_DAYS = 45;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFEED_DAYS = [12, 24, 36];
+const WATER_STEP_LITERS = 0.5;
+const WATER_MIN_UNITS = 8;
+const WATER_IDEAL_UNITS = 10;
 
 const phases = [
   {
@@ -103,10 +106,7 @@ const phases = [
 const habitChecks = [
   ["treino", "Treino pesado", "60-75 min, carga alta, progressão e poucas firulas."],
   ["cardio", "Cardio", "Moderado e dentro da meta da fase."],
-  ["agua", "Água", "4-5 litros ao longo do dia."],
   ["sono", "Sono", "Meta de 7,5-9 horas."],
-  ["sodio", "Sódio constante", "Mesmo padrão de sal todos os dias."],
-  ["semEscape", "Sem escapada", "Fim de semana conta como dia normal."],
 ];
 
 const alertChecks = [
@@ -382,6 +382,7 @@ function getEntry(day = state.selectedDay) {
       sleep: "",
       cardioMin: "",
       water: "",
+      waterUnits: 0,
       energy: "",
       notes: "",
       refeed: false,
@@ -403,6 +404,7 @@ function standardCheckIds() {
   return [
     ...[0, 1, 2, 3, 4].map((index) => `meal-${index}`),
     ...habitChecks.map(([id]) => id),
+    "water-goal",
   ];
 }
 
@@ -410,8 +412,20 @@ function adherenceForDay(day) {
   const entry = state.entries[String(day)];
   if (!entry || !entry.checks) return 0;
   const ids = standardCheckIds();
-  const done = ids.filter((id) => entry.checks[id]).length;
+  const done = ids.filter((id) => {
+    if (id === "water-goal") return waterUnits(entry) >= WATER_MIN_UNITS;
+    return entry.checks[id];
+  }).length;
   return Math.round((done / ids.length) * 100);
+}
+
+function waterUnits(entry) {
+  const units = Number(entry?.waterUnits);
+  if (Number.isFinite(units) && units > 0) return Math.min(WATER_IDEAL_UNITS, Math.floor(units));
+
+  const liters = Number(entry?.water);
+  if (!Number.isFinite(liters) || liters <= 0) return 0;
+  return Math.min(WATER_IDEAL_UNITS, Math.floor(liters / WATER_STEP_LITERS));
 }
 
 function render() {
@@ -463,7 +477,7 @@ function renderMacroCards(phase, day) {
     ["Carne", phase.totals.carne, "total do dia"],
     ["Batata", phase.totals.batata, "sem refeed"],
     ["Cardio", phase.macros.cardio, "alvo mínimo"],
-    ["Refeed", refeedInfo.short, refeedInfo.detail],
+    ["Carbo alto", refeedInfo.short, refeedInfo.detail],
   ];
 
   els.macroCards.innerHTML = cards
@@ -504,7 +518,7 @@ function renderChecks(phase, entry) {
 
   els.habitChecks.innerHTML = habitChecks
     .map(([id, name, detail]) => checkRow(id, name, detail, Boolean(entry.checks[id])))
-    .join("");
+    .join("") + renderWaterTracker(entry);
 }
 
 function checkRow(id, title, detail, checked) {
@@ -519,6 +533,33 @@ function checkRow(id, title, detail, checked) {
   `;
 }
 
+function renderWaterTracker(entry) {
+  const units = waterUnits(entry);
+  const liters = (units * WATER_STEP_LITERS).toFixed(1).replace(".", ",");
+  const nextLiters = ((units + 1) * WATER_STEP_LITERS).toFixed(1).replace(".", ",");
+  const percent = Math.min(100, Math.round((units / WATER_MIN_UNITS) * 100));
+  const title = units >= WATER_MIN_UNITS ? "Água mínima completa" : "Água 500 ml";
+  const detail =
+    units >= WATER_IDEAL_UNITS
+      ? "5,0 L registrados. Ideal do dia completo."
+      : units >= WATER_MIN_UNITS
+        ? `${liters} L registrados. Se beber mais 500 ml, vai para ${nextLiters} L.`
+        : `${liters} L de 4,0 L mínimos. Marque cada garrafa/copo de 500 ml.`;
+
+  return `
+    <label class="check-row water-row">
+      <input data-water-step type="checkbox" ${units >= WATER_IDEAL_UNITS ? "checked disabled" : ""} />
+      <span>
+        <span class="check-title">${title}</span>
+        <span class="check-detail">${detail}</span>
+        <span class="water-progress" aria-label="Progresso de água">
+          <span style="width: ${percent}%"></span>
+        </span>
+      </span>
+    </label>
+  `;
+}
+
 function renderDailyTotals(phase, day) {
   const refeedInfo = nextRefeedInfo(day);
   const totals = [
@@ -528,8 +569,7 @@ function renderDailyTotals(phase, day) {
     ["Cardio", phase.totals.cardio],
     ["Água", phase.totals.agua],
     ["Sono", phase.totals.sono],
-    ["Sódio", "constante"],
-    ["Refeed", `${refeedInfo.short} · ${refeedInfo.detail}`],
+    ["Carbo alto", `${refeedInfo.short} · ${refeedInfo.detail}`],
   ];
 
   els.focusBox.textContent =
@@ -564,15 +604,27 @@ function renderRefeed(day, entry) {
   const next = REFEED_DAYS.find((refeedDay) => refeedDay >= day);
   const planned = REFEED_DAYS.includes(day);
   const distance = next ? next - day : null;
-  const status = entry.refeed
-    ? "Refeed registrado. Mantenha gordura baixa e some 300-400 g de batata no dia."
-    : planned
-      ? "Janela sugerida de refeed. Use carbo alto se performance, pump ou aparência pedirem."
-      : next
-        ? `Próxima janela sugerida: dia ${next}, em ${distance} dia${distance === 1 ? "" : "s"}.`
-        : "Ciclo sem nova janela padrão. Use apenas se sinais de queda justificarem.";
 
-  els.refeedBox.textContent = `${status} Base: +300-400 g de batata extras, gordura baixa, água e sódio consistentes.`;
+  if (entry.refeed) {
+    els.refeedBox.textContent =
+      "Dia de carbo alto marcado: acrescente 300-400 g de batata ao total do dia e mantenha a gordura baixa.";
+    return;
+  }
+
+  if (planned) {
+    els.refeedBox.textContent =
+      "Hoje é uma janela sugerida. Marque o refeed só se quiser fazer o dia de carbo alto: +300-400 g de batata.";
+    return;
+  }
+
+  if (next) {
+    els.refeedBox.textContent = `Próxima janela sugerida: dia ${next}, em ${distance} dia${
+      distance === 1 ? "" : "s"
+    }. Até lá, siga a dieta normal.`;
+    return;
+  }
+
+  els.refeedBox.textContent = "Sem nova janela padrão. Use refeed só se performance e aparência pedirem.";
 }
 
 function renderAlerts(entry) {
@@ -692,6 +744,7 @@ function entryHasData(entry) {
       entry.sleep ||
       entry.cardioMin ||
       entry.water ||
+      entry.waterUnits ||
       entry.energy ||
       entry.notes ||
       entry.refeed,
@@ -844,6 +897,10 @@ function updateField(field) {
   const name = field.dataset.field;
   if (field.type === "checkbox") entry[name] = field.checked;
   else entry[name] = field.value;
+  if (name === "water") {
+    const liters = Number(field.value);
+    entry.waterUnits = Number.isFinite(liters) && liters > 0 ? Math.floor(liters / WATER_STEP_LITERS) : 0;
+  }
   touchEntry(entry);
   saveState();
 }
@@ -872,6 +929,17 @@ document.addEventListener("change", (event) => {
   if (target.matches("[data-alert]")) {
     const entry = getEntry();
     entry.alerts[target.dataset.alert] = target.checked;
+    touchEntry(entry);
+    saveState();
+    render();
+    return;
+  }
+
+  if (target.matches("[data-water-step]")) {
+    const entry = getEntry();
+    const units = Math.min(WATER_IDEAL_UNITS, waterUnits(entry) + 1);
+    entry.waterUnits = units;
+    entry.water = (units * WATER_STEP_LITERS).toFixed(1);
     touchEntry(entry);
     saveState();
     render();
