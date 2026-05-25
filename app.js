@@ -1,4 +1,8 @@
 const STORAGE_KEY = "plano-45-dias:v1";
+const AUTH_STORAGE_KEY = "plano-45-dias:supabase-session";
+const SUPABASE_URL = "https://pjmaoqysyspbmdefygxd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_nio0RbbeRBusnXhTf-P5hA_Fpv8gA_1";
+const CLOUD_TABLE = "diet_states";
 const TOTAL_DAYS = 45;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFEED_DAYS = [12, 24, 36];
@@ -114,9 +118,22 @@ const alertChecks = [
 ];
 
 let state = loadState();
+let authSession = loadAuthSession();
+let syncTimer = null;
+let syncInFlight = false;
+let syncAgain = false;
 
 const els = {
   startDate: document.querySelector("#startDate"),
+  syncStatus: document.querySelector("#syncStatus"),
+  authForm: document.querySelector("#authForm"),
+  authEmail: document.querySelector("#authEmail"),
+  authPassword: document.querySelector("#authPassword"),
+  signUpBtn: document.querySelector("#signUpBtn"),
+  sessionBox: document.querySelector("#sessionBox"),
+  sessionEmail: document.querySelector("#sessionEmail"),
+  syncNowBtn: document.querySelector("#syncNowBtn"),
+  signOutBtn: document.querySelector("#signOutBtn"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   dayTitle: document.querySelector("#dayTitle"),
   progressBar: document.querySelector("#progressBar"),
@@ -170,8 +187,249 @@ function loadState() {
   };
 }
 
-function saveState() {
+function saveState(options = {}) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (options.cloud !== false) scheduleCloudSave();
+}
+
+function loadAuthSession() {
+  try {
+    return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function saveAuthSession(session) {
+  authSession = normalizeSession(session);
+  if (authSession) localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authSession));
+  else localStorage.removeItem(AUTH_STORAGE_KEY);
+  renderAuthPanel();
+}
+
+function normalizeSession(session) {
+  if (!session || !session.access_token || !session.refresh_token) return null;
+  return {
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_at: session.expires_at
+      ? session.expires_at * 1000
+      : Date.now() + (session.expires_in || 3600) * 1000,
+    user: session.user || authSession?.user || null,
+  };
+}
+
+async function supabaseRequest(path, options = {}) {
+  const headers = {
+    apikey: SUPABASE_KEY,
+    "Content-Type": "application/json",
+  };
+  if (options.token) headers.Authorization = `Bearer ${options.token}`;
+  if (options.prefer) headers.Prefer = options.prefer;
+
+  const response = await fetch(`${SUPABASE_URL}${path}`, {
+    method: options.method || "GET",
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    const message = payload?.msg || payload?.message || payload?.error_description || response.statusText;
+    const error = new Error(message);
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
+  }
+
+  return payload;
+}
+
+async function ensureSession() {
+  if (!authSession?.access_token) return null;
+
+  const expiresSoon = authSession.expires_at && authSession.expires_at - Date.now() < 60_000;
+  if (!expiresSoon) return authSession;
+
+  try {
+    const refreshed = await supabaseRequest("/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      body: { refresh_token: authSession.refresh_token },
+    });
+    saveAuthSession(refreshed);
+    return authSession;
+  } catch (error) {
+    clearAuthSession();
+    setSyncStatus("Sessão expirada. Entre de novo.", "warn");
+    throw error;
+  }
+}
+
+function clearAuthSession() {
+  authSession = null;
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  renderAuthPanel();
+}
+
+function renderAuthPanel() {
+  const signedIn = Boolean(authSession?.access_token && authSession?.user);
+  els.authForm.hidden = signedIn;
+  els.sessionBox.hidden = !signedIn;
+  els.sessionEmail.textContent = signedIn ? authSession.user.email || "Conta conectada" : "";
+  if (!signedIn) setSyncStatus("Modo local", "local");
+}
+
+function setSyncStatus(text, mode = "local") {
+  els.syncStatus.textContent = text;
+  els.syncStatus.dataset.mode = mode;
+}
+
+async function bootCloudSync() {
+  renderAuthPanel();
+  if (!authSession?.access_token) return;
+
+  try {
+    await ensureSession();
+    await loadCloudState();
+  } catch (error) {
+    console.warn("Sincronização inicial falhou.", error);
+  }
+}
+
+async function signIn(email, password) {
+  setSyncStatus("Entrando...", "pending");
+  const session = await supabaseRequest("/auth/v1/token?grant_type=password", {
+    method: "POST",
+    body: { email, password },
+  });
+  saveAuthSession(session);
+  await loadCloudState();
+}
+
+async function signUp(email, password) {
+  setSyncStatus("Criando conta...", "pending");
+  const response = await supabaseRequest("/auth/v1/signup", {
+    method: "POST",
+    body: { email, password },
+  });
+
+  const session = response?.session || response;
+  if (session?.access_token) {
+    saveAuthSession(session);
+    await loadCloudState();
+    return;
+  }
+
+  setSyncStatus("Conta criada. Confirme o email e entre.", "pending");
+}
+
+async function loadCloudState() {
+  const session = await ensureSession();
+  if (!session?.user?.id) return;
+
+  setSyncStatus("Carregando nuvem...", "pending");
+  const query = `/rest/v1/${CLOUD_TABLE}?select=state,updated_at&user_id=eq.${encodeURIComponent(
+    session.user.id,
+  )}&limit=1`;
+  const rows = await supabaseRequest(query, { token: session.access_token });
+
+  if (rows?.[0]?.state) {
+    state = mergeStates(state, rows[0].state);
+    saveState({ cloud: false });
+    render();
+  }
+
+  await syncNow();
+}
+
+function mergeStates(localState, remoteState) {
+  const merged = {
+    startDate: remoteState?.startDate || localState.startDate || toISO(new Date()),
+    selectedDay: localState.selectedDay || remoteState?.selectedDay || 1,
+    entries: {},
+    updatedAt: newerTimestamp(localState.updatedAt, remoteState?.updatedAt),
+  };
+  const days = new Set([
+    ...Object.keys(localState.entries || {}),
+    ...Object.keys(remoteState?.entries || {}),
+  ]);
+
+  days.forEach((day) => {
+    const localEntry = localState.entries?.[day];
+    const remoteEntry = remoteState?.entries?.[day];
+    merged.entries[day] = chooseEntry(localEntry, remoteEntry);
+  });
+
+  return merged;
+}
+
+function chooseEntry(localEntry, remoteEntry) {
+  const hasLocal = entryHasData(localEntry);
+  const hasRemote = entryHasData(remoteEntry);
+  if (hasLocal && !hasRemote) return localEntry;
+  if (!hasLocal && hasRemote) return remoteEntry;
+  if (!hasLocal && !hasRemote) return localEntry || remoteEntry || {};
+
+  const localTime = Date.parse(localEntry.updatedAt || "") || 0;
+  const remoteTime = Date.parse(remoteEntry.updatedAt || "") || 0;
+  return remoteTime > localTime ? remoteEntry : localEntry;
+}
+
+function newerTimestamp(a, b) {
+  const aTime = Date.parse(a || "") || 0;
+  const bTime = Date.parse(b || "") || 0;
+  return aTime >= bTime ? a || b || "" : b || a || "";
+}
+
+function scheduleCloudSave() {
+  if (!authSession?.access_token) return;
+  setSyncStatus("Alterações pendentes...", "pending");
+  window.clearTimeout(syncTimer);
+  syncTimer = window.setTimeout(() => {
+    syncNow().catch((error) => console.warn("Falha ao salvar na nuvem.", error));
+  }, 650);
+}
+
+async function syncNow() {
+  if (!authSession?.access_token) return;
+  if (syncInFlight) {
+    syncAgain = true;
+    return;
+  }
+
+  syncInFlight = true;
+  syncAgain = false;
+
+  try {
+    const session = await ensureSession();
+    if (!session?.user?.id) return;
+
+    setSyncStatus("Salvando na nuvem...", "pending");
+    await supabaseRequest(`/rest/v1/${CLOUD_TABLE}?on_conflict=user_id`, {
+      method: "POST",
+      token: session.access_token,
+      prefer: "resolution=merge-duplicates,return=minimal",
+      body: [
+        {
+          user_id: session.user.id,
+          state,
+          updated_at: new Date().toISOString(),
+        },
+      ],
+    });
+    setSyncStatus("Sincronizado", "ok");
+  } catch (error) {
+    const tableMissing = error.status === 404 || String(error.message).includes(CLOUD_TABLE);
+    setSyncStatus(tableMissing ? "Banco não configurado" : "Falha ao sincronizar", "error");
+    throw error;
+  } finally {
+    syncInFlight = false;
+    if (syncAgain) {
+      syncAgain = false;
+      await syncNow();
+    }
+  }
 }
 
 function toISO(date) {
@@ -234,11 +492,18 @@ function getEntry(day = state.selectedDay) {
       energy: "",
       notes: "",
       refeed: false,
+      updatedAt: "",
     };
   }
   if (!state.entries[key].checks) state.entries[key].checks = {};
   if (!state.entries[key].alerts) state.entries[key].alerts = {};
   return state.entries[key];
+}
+
+function touchEntry(entry) {
+  const now = new Date().toISOString();
+  entry.updatedAt = now;
+  state.updatedAt = now;
 }
 
 function standardCheckIds() {
@@ -686,6 +951,7 @@ function updateField(field) {
   const name = field.dataset.field;
   if (field.type === "checkbox") entry[name] = field.checked;
   else entry[name] = field.value;
+  touchEntry(entry);
   saveState();
 }
 
@@ -695,6 +961,7 @@ document.addEventListener("change", (event) => {
   if (target === els.startDate) {
     state.startDate = target.value || toISO(new Date());
     state.selectedDay = todayPlanDay();
+    state.updatedAt = new Date().toISOString();
     saveState();
     render();
     return;
@@ -703,6 +970,7 @@ document.addEventListener("change", (event) => {
   if (target.matches("[data-check]")) {
     const entry = getEntry();
     entry.checks[target.dataset.check] = target.checked;
+    touchEntry(entry);
     saveState();
     render();
     return;
@@ -711,6 +979,7 @@ document.addEventListener("change", (event) => {
   if (target.matches("[data-alert]")) {
     const entry = getEntry();
     entry.alerts[target.dataset.alert] = target.checked;
+    touchEntry(entry);
     saveState();
     render();
     return;
@@ -734,26 +1003,77 @@ els.timeline.addEventListener("click", (event) => {
   const button = event.target.closest("[data-day]");
   if (!button) return;
   state.selectedDay = clampDay(button.dataset.day);
-  saveState();
+  saveState({ cloud: false });
   render();
 });
 
 els.prevDayBtn.addEventListener("click", () => {
   state.selectedDay = clampDay(state.selectedDay - 1);
-  saveState();
+  saveState({ cloud: false });
   render();
 });
 
 els.nextDayBtn.addEventListener("click", () => {
   state.selectedDay = clampDay(state.selectedDay + 1);
-  saveState();
+  saveState({ cloud: false });
   render();
 });
 
 els.todayBtn.addEventListener("click", () => {
   state.selectedDay = todayPlanDay();
-  saveState();
+  saveState({ cloud: false });
   render();
+});
+
+els.authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const email = els.authEmail.value.trim();
+  const password = els.authPassword.value;
+  if (!email || !password) return;
+
+  try {
+    await signIn(email, password);
+    els.authPassword.value = "";
+  } catch (error) {
+    setSyncStatus("Email ou senha inválidos", "error");
+    console.warn("Falha ao entrar.", error);
+  }
+});
+
+els.signUpBtn.addEventListener("click", async () => {
+  const email = els.authEmail.value.trim();
+  const password = els.authPassword.value;
+  if (!email || !password) {
+    setSyncStatus("Informe email e senha", "error");
+    return;
+  }
+
+  try {
+    await signUp(email, password);
+    els.authPassword.value = "";
+  } catch (error) {
+    setSyncStatus("Não foi possível criar conta", "error");
+    console.warn("Falha ao criar conta.", error);
+  }
+});
+
+els.syncNowBtn.addEventListener("click", () => {
+  syncNow().catch((error) => console.warn("Falha na sincronização manual.", error));
+});
+
+els.signOutBtn.addEventListener("click", async () => {
+  try {
+    if (authSession?.access_token) {
+      await supabaseRequest("/auth/v1/logout", {
+        method: "POST",
+        token: authSession.access_token,
+      });
+    }
+  } catch (error) {
+    console.warn("Falha ao encerrar sessão no Supabase.", error);
+  } finally {
+    clearAuthSession();
+  }
 });
 
 els.exportBtn.addEventListener("click", () => {
@@ -799,20 +1119,27 @@ function normalizeImportedState(imported) {
     startDate: imported.startDate,
     selectedDay: clampDay(imported.selectedDay || 1),
     entries: imported.entries,
+    updatedAt: imported.updatedAt || new Date().toISOString(),
   };
 }
 
 els.resetBtn.addEventListener("click", () => {
-  const confirmed = window.confirm("Limpar todos os registros deste navegador?");
+  const confirmed = window.confirm(
+    authSession?.access_token
+      ? "Limpar registros deste navegador e substituir a nuvem por um plano vazio?"
+      : "Limpar todos os registros deste navegador?",
+  );
   if (!confirmed) return;
   localStorage.removeItem(STORAGE_KEY);
   state = loadState();
+  state.updatedAt = new Date().toISOString();
   saveState();
   render();
 });
 
-saveState();
+saveState({ cloud: false });
 render();
+bootCloudSync();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

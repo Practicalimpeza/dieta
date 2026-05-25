@@ -36,6 +36,33 @@
         </div>
       </header>
 
+      <section class="sync-panel" aria-labelledby="syncHeading">
+        <div>
+          <p class="eyebrow">Sincronização</p>
+          <h2 id="syncHeading">Nuvem</h2>
+          <p id="syncStatus" class="muted">Modo local</p>
+        </div>
+
+        <form class="auth-form" id="authForm">
+          <label>
+            <span>Email</span>
+            <input id="authEmail" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            <span>Senha</span>
+            <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required />
+          </label>
+          <button class="ghost-button strong" id="signInBtn" type="submit">Entrar</button>
+          <button class="ghost-button" id="signUpBtn" type="button">Criar conta</button>
+        </form>
+
+        <div class="session-box" id="sessionBox" hidden>
+          <span id="sessionEmail"></span>
+          <button class="ghost-button" id="syncNowBtn" type="button">Sincronizar</button>
+          <button class="ghost-button danger" id="signOutBtn" type="button">Sair</button>
+        </div>
+      </section>
+
       <section class="hero-panel" aria-labelledby="dayTitle">
         <div class="day-summary">
           <p class="eyebrow" id="selectedDateLabel"></p>

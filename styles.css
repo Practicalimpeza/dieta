@@ -188,10 +188,71 @@ h3 {
   color: var(--red);
 }
 
+.ghost-button.strong {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+}
+
 .icon-button.strong {
   border-color: var(--green);
   background: var(--green);
   color: #fff;
+}
+
+.sync-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.4fr);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.auth-form,
+.session-box {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 6px;
+  min-width: 180px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--ink);
+  outline: none;
+}
+
+.session-box {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.session-box span {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hero-panel {
@@ -656,6 +717,7 @@ h3 {
   }
 
   .topbar,
+  .sync-panel,
   .section-head,
   .check-groups {
     display: grid;
@@ -663,6 +725,8 @@ h3 {
   }
 
   .top-actions,
+  .auth-form,
+  .session-box,
   .day-nav {
     justify-content: start;
   }
@@ -676,6 +740,27 @@ h3 {
   .date-control {
     grid-column: 1 / -1;
     justify-content: space-between;
+  }
+
+  .auth-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+
+  .auth-form label {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .session-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .session-box span {
+    grid-column: 1 / -1;
+    max-width: 100%;
   }
 
   .ghost-button {

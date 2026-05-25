@@ -20,8 +20,16 @@ Quando publicado no GitHub Pages, acesse pelo celular ou PC em:
 https://practicalimpeza.github.io/dieta/
 ```
 
-## Dados
+## Sincronização
 
-Os registros ficam salvos no `localStorage` do navegador. O botão `Backup` baixa um JSON com o estado atual do plano, e `Importar` restaura esse arquivo no mesmo navegador ou em outro dispositivo.
+O app salva no navegador e, quando você entra com uma conta Supabase, sincroniza automaticamente com a tabela `diet_states`.
 
-Isso significa que celular e PC não sincronizam automaticamente. Para levar registros de um para o outro, use `Backup` no aparelho atual e `Importar` no outro.
+Para ativar a nuvem, rode uma vez o SQL em `supabase/schema.sql` no SQL Editor do Supabase.
+
+Depois:
+
+1. Abra o app.
+2. Crie uma conta com email e senha.
+3. Entre com a mesma conta no celular e no PC.
+
+O botão `Backup` continua disponível como segurança manual, mas não é mais necessário para sincronizar entre aparelhos.
