@@ -1,9 +1,9 @@
-const CACHE_NAME = "plano-45-dias-v5";
+const CACHE_NAME = "plano-45-dias-v6";
 const APP_ASSETS = [
   "./",
   "index.html",
-  "styles.css?v=5",
-  "app.js?v=5",
+  "styles.css?v=6",
+  "app.js?v=6",
   "manifest.json",
   "assets/mark.svg",
 ];

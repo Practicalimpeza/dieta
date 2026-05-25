@@ -124,8 +124,6 @@ let syncAgain = false;
 
 const els = {
   startDate: document.querySelector("#startDate"),
-  syncStatus: document.querySelector("#syncStatus"),
-  syncNowBtn: document.querySelector("#syncNowBtn"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   dayTitle: document.querySelector("#dayTitle"),
   progressBar: document.querySelector("#progressBar"),
@@ -139,7 +137,6 @@ const els = {
   habitChecks: document.querySelector("#habitChecks"),
   focusBox: document.querySelector("#focusBox"),
   dailyTotals: document.querySelector("#dailyTotals"),
-  refeedBox: document.querySelector("#refeedBox"),
   alertChecks: document.querySelector("#alertChecks"),
   alertAdvice: document.querySelector("#alertAdvice"),
   timeline: document.querySelector("#timeline"),
@@ -150,10 +147,6 @@ const els = {
   prevDayBtn: document.querySelector("#prevDayBtn"),
   todayBtn: document.querySelector("#todayBtn"),
   nextDayBtn: document.querySelector("#nextDayBtn"),
-  exportBtn: document.querySelector("#exportBtn"),
-  importBtn: document.querySelector("#importBtn"),
-  importFile: document.querySelector("#importFile"),
-  resetBtn: document.querySelector("#resetBtn"),
 };
 
 function loadState() {
@@ -212,8 +205,8 @@ async function supabaseRequest(path, options = {}) {
 }
 
 function setSyncStatus(text, mode = "local") {
-  els.syncStatus.textContent = text;
-  els.syncStatus.dataset.mode = mode;
+  document.documentElement.dataset.syncStatus = mode;
+  document.documentElement.dataset.syncLabel = text;
 }
 
 async function bootCloudSync() {
@@ -451,7 +444,6 @@ function render() {
   renderChecks(phase, entry);
   renderDailyTotals(phase, day);
   renderFields(entry);
-  renderRefeed(day, entry);
   renderAlerts(entry);
   renderTimeline();
   renderWeeklyReview();
@@ -598,33 +590,6 @@ function renderFields(entry) {
     }
     field.value = entry[name] || "";
   });
-}
-
-function renderRefeed(day, entry) {
-  const next = REFEED_DAYS.find((refeedDay) => refeedDay >= day);
-  const planned = REFEED_DAYS.includes(day);
-  const distance = next ? next - day : null;
-
-  if (entry.refeed) {
-    els.refeedBox.textContent =
-      "Dia de carbo alto marcado: acrescente 300-400 g de batata ao total do dia e mantenha a gordura baixa.";
-    return;
-  }
-
-  if (planned) {
-    els.refeedBox.textContent =
-      "Hoje é uma janela sugerida. Marque o refeed só se quiser fazer o dia de carbo alto: +300-400 g de batata.";
-    return;
-  }
-
-  if (next) {
-    els.refeedBox.textContent = `Próxima janela sugerida: dia ${next}, em ${distance} dia${
-      distance === 1 ? "" : "s"
-    }. Até lá, siga a dieta normal.`;
-    return;
-  }
-
-  els.refeedBox.textContent = "Sem nova janela padrão. Use refeed só se performance e aparência pedirem.";
 }
 
 function renderAlerts(entry) {
@@ -983,67 +948,6 @@ els.nextDayBtn.addEventListener("click", () => {
 els.todayBtn.addEventListener("click", () => {
   state.selectedDay = todayPlanDay();
   saveState({ cloud: false });
-  render();
-});
-
-els.syncNowBtn.addEventListener("click", () => {
-  syncNow().catch((error) => console.warn("Falha na sincronização manual.", error));
-});
-
-els.exportBtn.addEventListener("click", () => {
-  const data = JSON.stringify(state, null, 2);
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `plano-45-dias-${toISO(new Date())}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
-});
-
-els.importBtn.addEventListener("click", () => {
-  els.importFile.click();
-});
-
-els.importFile.addEventListener("change", async (event) => {
-  const [file] = event.target.files || [];
-  if (!file) return;
-
-  try {
-    const imported = normalizeImportedState(JSON.parse(await file.text()));
-    const confirmed = window.confirm("Substituir os registros atuais pelo backup importado?");
-    if (!confirmed) return;
-    state = imported;
-    saveState();
-    render();
-  } catch (error) {
-    window.alert("Não foi possível importar este arquivo de backup.");
-    console.warn("Falha ao importar backup.", error);
-  } finally {
-    event.target.value = "";
-  }
-});
-
-function normalizeImportedState(imported) {
-  if (!imported || typeof imported !== "object" || !imported.startDate || !imported.entries) {
-    throw new Error("Backup inválido.");
-  }
-
-  return {
-    startDate: imported.startDate,
-    selectedDay: clampDay(imported.selectedDay || 1),
-    entries: imported.entries,
-    updatedAt: imported.updatedAt || new Date().toISOString(),
-  };
-}
-
-els.resetBtn.addEventListener("click", () => {
-  const confirmed = window.confirm("Limpar registros deste navegador e substituir a nuvem por um plano vazio?");
-  if (!confirmed) return;
-  localStorage.removeItem(STORAGE_KEY);
-  state = loadState();
-  state.updatedAt = new Date().toISOString();
-  saveState();
   render();
 });
 

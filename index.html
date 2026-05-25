@@ -10,8 +10,8 @@
     <link rel="icon" href="assets/mark.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/mark.svg" />
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css?v=5" />
-    <script defer src="app.js?v=5"></script>
+    <link rel="stylesheet" href="styles.css?v=6" />
+    <script defer src="app.js?v=6"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -29,25 +29,8 @@
             <span>Início</span>
             <input id="startDate" type="date" />
           </label>
-          <button class="ghost-button" id="exportBtn" type="button">Backup</button>
-          <button class="ghost-button" id="importBtn" type="button">Importar</button>
-          <input class="sr-only" id="importFile" type="file" accept="application/json" />
-          <button class="ghost-button danger" id="resetBtn" type="button">Limpar</button>
         </div>
       </header>
-
-      <section class="sync-panel" aria-labelledby="syncHeading">
-        <div>
-          <p class="eyebrow">Sincronização</p>
-          <h2 id="syncHeading">Nuvem automática</h2>
-          <p id="syncStatus" class="muted">Carregando nuvem...</p>
-        </div>
-
-        <div class="cloud-actions">
-          <span>Plano compartilhado entre celular e PC</span>
-          <button class="ghost-button" id="syncNowBtn" type="button">Sincronizar</button>
-        </div>
-      </section>
 
       <section class="hero-panel" aria-labelledby="dayTitle">
         <div class="day-summary">
@@ -156,20 +139,6 @@
           </div>
           <div id="focusBox" class="callout compact-callout"></div>
           <div id="dailyTotals" class="totals-grid"></div>
-        </section>
-
-        <section class="panel" aria-labelledby="refeedHeading">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Ajuste programado</p>
-              <h2 id="refeedHeading">Dia de carbo alto</h2>
-            </div>
-          </div>
-          <label class="switch-row">
-            <input data-field="refeed" type="checkbox" />
-            <span>Fiz refeed hoje (+300-400 g batata)</span>
-          </label>
-          <div id="refeedBox" class="callout"></div>
         </section>
 
         <section class="panel" aria-labelledby="signalsHeading">
