@@ -20,6 +20,12 @@ Quando publicado no GitHub Pages, acesse pelo celular ou PC em:
 https://practicalimpeza.github.io/dieta/
 ```
 
+O ciclo atual começa em `26/05/2026`. A rotina de treino está configurada assim:
+
+- Segunda, quarta, sexta e sábado: 10h.
+- Terça e quinta: 20h.
+- Domingo: sem musculação programada.
+
 ## Sincronização
 
 O app salva no navegador e sincroniza automaticamente com uma linha pública no Supabase, na tabela `dieta`, usando o registro `id = 1`.

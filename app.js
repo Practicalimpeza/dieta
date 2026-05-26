@@ -1,4 +1,5 @@
-const STORAGE_KEY = "plano-45-dias:v1";
+const STORAGE_KEY = "plano-45-dias:v2";
+const PLAN_START_DATE = "2026-05-26";
 const SUPABASE_URL = "https://pjmaoqysyspbmdefygxd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nio0RbbeRBusnXhTf-P5hA_Fpv8gA_1";
 const CLOUD_TABLE = "dieta";
@@ -103,8 +104,7 @@ const phases = [
   },
 ];
 
-const habitChecks = [
-  ["treino", "Treino pesado", "60-75 min, carga alta, progressão e poucas firulas."],
+const baseHabitChecks = [
   ["cardio", "Cardio", "Moderado e dentro da meta da fase."],
   ["sono", "Sono", "Meta de 7,5-9 horas."],
 ];
@@ -160,8 +160,6 @@ function cleanVersionParam() {
 }
 
 function loadState() {
-  const today = toISO(new Date());
-
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (parsed && parsed.startDate && parsed.entries) {
@@ -176,7 +174,7 @@ function loadState() {
   }
 
   return {
-    startDate: today,
+    startDate: PLAN_START_DATE,
     selectedDay: 1,
     entries: {},
   };
@@ -420,10 +418,11 @@ function touchEntry(entry) {
   state.updatedAt = now;
 }
 
-function standardCheckIds() {
+function standardCheckIds(day = state.selectedDay) {
+  const selectedDate = addDays(state.startDate, clampDay(day) - 1);
   return [
     ...[0, 1, 2, 3, 4].map((index) => `meal-${index}`),
-    ...habitChecks.map(([id]) => id),
+    ...habitChecksForDate(selectedDate).map(([id]) => id),
     "water-goal",
   ];
 }
@@ -431,7 +430,7 @@ function standardCheckIds() {
 function adherenceForDay(day) {
   const entry = state.entries[String(day)];
   if (!entry || !entry.checks) return 0;
-  const ids = standardCheckIds();
+  const ids = standardCheckIds(day);
   const done = ids.filter((id) => {
     if (id === "water-goal") return waterUnits(entry) >= WATER_MIN_UNITS;
     return entry.checks[id];
@@ -467,9 +466,9 @@ function render() {
   els.phaseGoal.textContent = phase.goal;
   els.scoreNumber.textContent = `${adherence}%`;
 
-  renderMacroCards(phase, day);
-  renderChecks(phase, entry);
-  renderDailyTotals(phase, day);
+  renderMacroCards(phase, day, selectedDate);
+  renderChecks(phase, entry, selectedDate);
+  renderDailyTotals(phase, day, selectedDate);
   renderFields(entry);
   renderAlerts(entry);
   renderTimeline();
@@ -488,15 +487,15 @@ function phaseTitleForDay(phase, day) {
   return "Carbo concentrado";
 }
 
-function renderMacroCards(phase, day) {
-  const refeedInfo = nextRefeedInfo(day);
+function renderMacroCards(phase, day, selectedDate) {
+  const training = trainingForDate(selectedDate);
   const cards = [
     ["Proteína", phase.macros.proteina, "base diária"],
     ["Carbo", phase.macros.carbo, "fase atual"],
     ["Carne", phase.totals.carne, "total do dia"],
     ["Batata", phase.totals.batata, "sem refeed"],
     ["Cardio", phase.macros.cardio, "alvo mínimo"],
-    ["Carbo alto", refeedInfo.short, refeedInfo.detail],
+    ["Treino", training.value, training.detail],
   ];
 
   els.macroCards.innerHTML = cards
@@ -527,15 +526,96 @@ function nextRefeedInfo(day) {
   return { short: "Livre", detail: "só se precisar" };
 }
 
-function renderChecks(phase, entry) {
-  els.mealChecks.innerHTML = phase.meals
+function trainingForDate(isoDate) {
+  const weekday = fromISO(isoDate).getDay();
+  const morningDays = new Set([1, 3, 5, 6]);
+  const nightDays = new Set([2, 4]);
+
+  if (morningDays.has(weekday)) {
+    return {
+      hasTraining: true,
+      value: "10h",
+      detail: "musculação de manhã",
+      preWindow: "08h30-09h30",
+      postWindow: "após 11h",
+    };
+  }
+
+  if (nightDays.has(weekday)) {
+    return {
+      hasTraining: true,
+      value: "20h",
+      detail: "musculação à noite",
+      preWindow: "18h30-19h30",
+      postWindow: "após 21h",
+    };
+  }
+
+  return {
+    hasTraining: false,
+    value: "Descanso",
+    detail: "sem musculação",
+    preWindow: "",
+    postWindow: "",
+  };
+}
+
+function habitChecksForDate(isoDate) {
+  const training = trainingForDate(isoDate);
+  const checks = [...baseHabitChecks];
+
+  if (training.hasTraining) {
+    checks.unshift([
+      "treino",
+      `Treino ${training.value}`,
+      "60-75 min, carga alta, progressão e poucas firulas.",
+    ]);
+  }
+
+  return checks;
+}
+
+function mealsForDate(phase, isoDate) {
+  const training = trainingForDate(isoDate);
+
+  return phase.meals.map(([name, detail]) => {
+    if (name === "Pré-treino") {
+      return training.hasTraining
+        ? [`Pré-treino (${training.preWindow})`, detail]
+        : ["Refeição 3", detail];
+    }
+
+    if (name === "Pós-treino") {
+      return training.hasTraining
+        ? [`Pós-treino (${training.postWindow})`, detail]
+        : ["Refeição 4", detail];
+    }
+
+    return [name, detail];
+  });
+}
+
+function focusTextForDay(day, training) {
+  if (!training.hasTraining) {
+    return "Sem musculação programada hoje. Mantenha dieta, cardio, água e sono para não perder ritmo.";
+  }
+
+  if (day >= 31) {
+    return `Treino às ${training.value}: concentre carbo no pré e pós, mantenha o resto do dia limpo e preserve a carga.`;
+  }
+
+  return `Treino às ${training.value}: cumpra pré e pós com calma, faça o cardio da fase e mantenha água alta.`;
+}
+
+function renderChecks(phase, entry, selectedDate) {
+  els.mealChecks.innerHTML = mealsForDate(phase, selectedDate)
     .map(([name, detail], index) => {
       const id = `meal-${index}`;
       return checkRow(id, name, detail, Boolean(entry.checks[id]));
     })
     .join("");
 
-  els.habitChecks.innerHTML = habitChecks
+  els.habitChecks.innerHTML = habitChecksForDate(selectedDate)
     .map(([id, name, detail]) => checkRow(id, name, detail, Boolean(entry.checks[id])))
     .join("") + renderWaterTracker(entry);
 }
@@ -579,9 +659,11 @@ function renderWaterTracker(entry) {
   `;
 }
 
-function renderDailyTotals(phase, day) {
+function renderDailyTotals(phase, day, selectedDate) {
   const refeedInfo = nextRefeedInfo(day);
+  const training = trainingForDate(selectedDate);
   const totals = [
+    ["Treino", `${training.value} · ${training.detail}`],
     ["Carne moída", phase.totals.carne],
     ["Batata", phase.totals.batata],
     ["Whey", phase.totals.whey],
@@ -591,10 +673,7 @@ function renderDailyTotals(phase, day) {
     ["Carbo alto", `${refeedInfo.short} · ${refeedInfo.detail}`],
   ];
 
-  els.focusBox.textContent =
-    day >= 31
-      ? "Foco: concentrar carbo em pré e pós, manter o resto do dia limpo e não sacrificar o treino."
-      : "Foco: cumprir refeições, cardio e água sem mexer no sal. A consistência está fazendo o trabalho.";
+  els.focusBox.textContent = focusTextForDay(day, training);
 
   els.dailyTotals.innerHTML = totals
     .map(
