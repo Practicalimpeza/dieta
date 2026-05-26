@@ -20,7 +20,7 @@
           <img src="assets/mark.svg" alt="" class="brand-mark" />
           <div>
             <p class="eyebrow">Plano 45 dias</p>
-            <h1>Dieta e execução diária</h1>
+            <h1>Dieta, treino e execução diária</h1>
           </div>
         </div>
 
@@ -57,8 +57,35 @@
 
       <section class="target-strip" id="macroCards" aria-label="Alvos práticos do dia"></section>
 
-      <main class="workspace">
-        <section class="panel daily-panel" aria-labelledby="todayHeading">
+      <nav class="app-tabs" role="tablist" aria-label="Navegação principal">
+        <button class="tab-button" type="button" role="tab" data-tab="today" aria-controls="panelToday">
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z" /></svg>
+          </span>
+          <span class="tab-label">Hoje</span>
+        </button>
+        <button class="tab-button" type="button" role="tab" data-tab="training" aria-controls="panelTraining">
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 9h3v6H4zm13 0h3v6h-3zM8 7h2v10H8zm6 0h2v10h-2zm-4 4h4v2h-4z" /></svg>
+          </span>
+          <span class="tab-label">Treino</span>
+        </button>
+        <button class="tab-button" type="button" role="tab" data-tab="control" aria-controls="panelControl">
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 5h14v4H5zm0 6h14v8H5zm3 2v4h2v-4zm4 0v4h2v-4z" /></svg>
+          </span>
+          <span class="tab-label">Dados</span>
+        </button>
+        <button class="tab-button" type="button" role="tab" data-tab="review" aria-controls="panelReview">
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 19h16v2H4zm2-2h3V9H6zm5 0h3V4h-3zm5 0h3v-7h-3z" /></svg>
+          </span>
+          <span class="tab-label">Revisão</span>
+        </button>
+      </nav>
+
+      <main class="workspace" id="workspace">
+        <section class="panel daily-panel" id="panelToday" data-tab-panel="today" role="tabpanel" aria-labelledby="todayHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Execução</p>
@@ -83,7 +110,18 @@
           </div>
         </section>
 
-        <section class="panel" aria-labelledby="metricsHeading">
+        <section class="panel training-panel" id="panelTraining" data-tab-panel="training" role="tabpanel" aria-labelledby="trainingHeading">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Treino</p>
+              <h2 id="trainingHeading">Plano do dia</h2>
+            </div>
+            <span id="trainingScore" class="muted"></span>
+          </div>
+          <div id="trainingPlan" class="training-plan"></div>
+        </section>
+
+        <section class="panel metrics-panel" id="panelControl" data-tab-panel="control" role="tabpanel" aria-labelledby="metricsHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Controle</p>
@@ -113,6 +151,14 @@
               <input data-field="water" type="number" step="0.1" min="0" inputmode="decimal" placeholder="L" />
             </label>
             <label>
+              <span>Pressão</span>
+              <input data-field="pressure" type="text" inputmode="text" placeholder="120/80" />
+            </label>
+            <label>
+              <span>BPM repouso</span>
+              <input data-field="restingPulse" type="number" step="1" min="0" inputmode="numeric" placeholder="bpm" />
+            </label>
+            <label>
               <span>Energia</span>
               <select data-field="energy">
                 <option value="">-</option>
@@ -131,7 +177,7 @@
           </label>
         </section>
 
-        <section class="panel" aria-labelledby="totalsHeading">
+        <section class="panel totals-panel" data-tab-panel="today" role="tabpanel" aria-labelledby="totalsHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Alvos práticos</p>
@@ -142,7 +188,7 @@
           <div id="dailyTotals" class="totals-grid"></div>
         </section>
 
-        <section class="panel" aria-labelledby="signalsHeading">
+        <section class="panel signals-panel" data-tab-panel="control" role="tabpanel" aria-labelledby="signalsHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Ajuste fino</p>
@@ -153,7 +199,7 @@
           <div id="alertAdvice" class="callout quiet"></div>
         </section>
 
-        <section class="panel timeline-panel" aria-labelledby="timelineHeading">
+        <section class="panel timeline-panel" id="panelReview" data-tab-panel="review" role="tabpanel" aria-labelledby="timelineHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Ciclo completo</p>
@@ -164,7 +210,7 @@
           <div id="timeline" class="timeline" aria-label="Linha do tempo de 45 dias"></div>
         </section>
 
-        <section class="panel weekly-panel" aria-labelledby="weeklyHeading">
+        <section class="panel weekly-panel" data-tab-panel="review" role="tabpanel" aria-labelledby="weeklyHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Revisão</p>
@@ -174,7 +220,7 @@
           <div id="weeklyReview" class="weekly-review"></div>
         </section>
 
-        <section class="panel progress-panel" aria-labelledby="progressHeading">
+        <section class="panel progress-panel" data-tab-panel="review" role="tabpanel" aria-labelledby="progressHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Evolução</p>
@@ -185,7 +231,7 @@
           <canvas id="progressChart" width="900" height="320" aria-label="Gráfico de evolução" role="img"></canvas>
         </section>
 
-        <section class="panel notes-panel" aria-labelledby="rulesHeading">
+        <section class="panel notes-panel" data-tab-panel="review" role="tabpanel" aria-labelledby="rulesHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Princípios</p>
@@ -193,11 +239,11 @@
             </div>
           </div>
           <div class="principle-list">
-            <p><strong>Treino:</strong> pesado, intenso, 60-75 min, carga alta e progressão.</p>
-            <p><strong>Cardio:</strong> consistente, moderado e ajustado por fase.</p>
-            <p><strong>Sódio:</strong> constante todos os dias, sem corte brusco.</p>
-            <p><strong>Água:</strong> 4-5 L por dia para ajudar performance e retenção.</p>
-            <p><strong>Sono:</strong> 7,5-9 h como prioridade real.</p>
+            <p><strong>Dieta:</strong> base simples e restrita: arroz, batata, carne/frango/ovos e whey; fibra só como opcional separado.</p>
+            <p><strong>Treino:</strong> progressão com 1-2 repetições na reserva nos básicos e falha só em isoladores.</p>
+            <p><strong>Cardio:</strong> consistente para ajudar HDL, pressão e condicionamento.</p>
+            <p><strong>Saúde:</strong> pressão, sono, água e sinais fortes mandam mais que ego de carga.</p>
+            <p><strong>Cálcio:</strong> sem suplemento extra até repetir cálcio/albumina ou cálcio ionizado.</p>
           </div>
         </section>
       </main>

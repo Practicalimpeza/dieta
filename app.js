@@ -12,6 +12,7 @@ const WATER_MIN_UNITS = 8;
 const WATER_IDEAL_UNITS = 10;
 const WATER_PACE_START_MINUTES = 7 * 60;
 const WATER_PACE_END_MINUTES = 22 * 60;
+const VALID_TABS = ["today", "training", "control", "review"];
 
 const phases = [
   {
@@ -19,29 +20,32 @@ const phases = [
     start: 1,
     end: 15,
     title: "Fase 1",
-    goal: "Reduzir retenção, iniciar perda de gordura e manter performance alta.",
+    goal: "Entrar em déficit leve, manter performance e controlar pressão, água e digestão.",
     macros: {
-      proteina: "200 g",
+      proteina: "180-190 g",
       carbo: "260 g",
-      gordura: "55 g",
-      kcal: "~2.500",
-      cardio: "30 min",
+      gordura: "60-65 g",
+      kcal: "~2.450",
+      cardio: "30-35 min",
       agua: "4-5 L",
     },
     meals: [
-      ["Refeição 1", "200 g carne moída + 250 g batata"],
-      ["Refeição 2", "200 g carne moída + 250 g batata"],
-      ["Pré-treino", "150 g carne moída + 350 g batata"],
-      ["Pós-treino", "200 g carne moída + 350 g batata + whey"],
-      ["Última", "200 g carne moída + 100 g batata"],
+      ["Refeição 1", "1 dose whey + 250 g batata ou 200 g arroz"],
+      ["Refeição 2", "200 g carne moída/frango + 250 g arroz ou 300 g batata"],
+      ["Pré-treino", "150 g patinho/frango + 300-350 g batata/arroz"],
+      ["Pós-treino", "1 dose whey + 300 g arroz/batata"],
+      ["Última", "200 g carne/frango/ovos + 150 g arroz/batata"],
     ],
     totals: {
-      carne: "950 g",
-      batata: "1.300 g",
+      proteina: "180-190 g",
+      carbo: "260 g",
+      gordura: "60-65 g",
+      fibra: "psyllium opcional",
       whey: "1 dose",
-      cardio: "30 min",
+      cardio: "30-35 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
+      calcio: "sem extra",
     },
   },
   {
@@ -49,29 +53,32 @@ const phases = [
     start: 16,
     end: 30,
     title: "Fase 2",
-    goal: "Acelerar definição mantendo densidade muscular e treino forte.",
+    goal: "Apertar o déficit sem derrubar carga, libido ou sono.",
     macros: {
-      proteina: "200 g",
-      carbo: "~220 g",
-      gordura: "50 g",
+      proteina: "185-195 g",
+      carbo: "225 g",
+      gordura: "55-60 g",
       kcal: "~2.300",
       cardio: "35-40 min",
       agua: "4-5 L",
     },
     meals: [
-      ["Refeição 1", "200 g carne moída + 200 g batata"],
-      ["Refeição 2", "200 g carne moída + 200 g batata"],
-      ["Pré-treino", "150 g carne moída + 350 g batata"],
-      ["Pós-treino", "200 g carne moída + 350 g batata + whey"],
-      ["Última", "200 g carne moída + 100 g batata"],
+      ["Refeição 1", "1 dose whey + 220 g batata ou 170 g arroz"],
+      ["Refeição 2", "200 g carne moída/frango + 220 g arroz ou 260 g batata"],
+      ["Pré-treino", "150 g patinho/frango + 280 g batata/arroz"],
+      ["Pós-treino", "1 dose whey + 260 g arroz/batata"],
+      ["Última", "200 g carne/frango/ovos + 100 g arroz/batata"],
     ],
     totals: {
-      carne: "950 g",
-      batata: "1.200 g",
+      proteina: "185-195 g",
+      carbo: "225 g",
+      gordura: "55-60 g",
+      fibra: "psyllium opcional",
       whey: "1 dose",
       cardio: "35-40 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
+      calcio: "sem extra",
     },
   },
   {
@@ -79,29 +86,32 @@ const phases = [
     start: 31,
     end: 45,
     title: "Fase 3",
-    goal: "Secar o máximo possível preservando fullness no pré e pós-treino.",
+    goal: "Finalizar mais seco, mantendo carbo perto do treino e recuperando o suficiente.",
     macros: {
-      proteina: "200 g",
-      carbo: "~200 g",
-      gordura: "45-50 g",
+      proteina: "190 g",
+      carbo: "200-210 g",
+      gordura: "50-55 g",
       kcal: "~2.150",
       cardio: "40 min",
       agua: "4-5 L",
     },
     meals: [
-      ["Refeição 1", "200 g carne moída + 150 g batata"],
-      ["Refeição 2", "200 g carne moída + 150 g batata"],
-      ["Pré-treino", "150 g carne moída + 350 g batata"],
-      ["Pós-treino", "200 g carne moída + 350 g batata + whey"],
-      ["Última", "200 g carne moída sem batata ou 50 g batata"],
+      ["Refeição 1", "1 dose whey + 200 g batata ou 150 g arroz"],
+      ["Refeição 2", "200 g carne moída/frango + 180 g arroz ou 230 g batata"],
+      ["Pré-treino", "150 g patinho/frango + 260 g batata/arroz"],
+      ["Pós-treino", "1 dose whey + 250 g arroz/batata"],
+      ["Última", "200 g carne/frango/ovos sem carbo, ou 80 g arroz se o sono cair"],
     ],
     totals: {
-      carne: "950 g",
-      batata: "1.000-1.050 g",
+      proteina: "190 g",
+      carbo: "200-210 g",
+      gordura: "50-55 g",
+      fibra: "psyllium opcional",
       whey: "1 dose",
       cardio: "40 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
+      calcio: "sem extra",
     },
   },
 ];
@@ -112,12 +122,192 @@ const baseHabitChecks = [
 ];
 
 const alertChecks = [
+  ["pressaoAlta", "Pressão alta"],
+  ["dorCabeca", "Dor de cabeça forte"],
+  ["faltaAr", "Falta de ar/dor no peito"],
   ["forca", "Força despencou"],
   ["libido", "Libido caiu muito"],
   ["cansaco", "Cansaço extremo"],
   ["insonia", "Insônia"],
   ["irritabilidade", "Irritabilidade forte"],
 ];
+
+const trainingPlanByWeekday = {
+  0: {
+    title: "Descanso ativo",
+    time: "Livre",
+    detail: "caminhada leve + mobilidade",
+    focus: "Recuperar, manter passos e chegar inteiro na segunda.",
+    preWindow: "",
+    postWindow: "",
+    exercises: [],
+  },
+  1: {
+    title: "Peito + tríceps + lateral",
+    time: "10h",
+    detail: "push forte",
+    focus: "Progredir no supino e preservar articulação. Falha só nos isoladores.",
+    preWindow: "08h30-09h30",
+    postWindow: "após 11h",
+    exercises: [
+      ["supino-reto", "Supino reto", "4x6-8", "1-2 RIR"],
+      ["supino-inclinado", "Supino inclinado halter", "3x8-10", "controle total"],
+      ["crossover", "Crossover/crucifixo", "3x12-15", "alongar sem dor"],
+      ["desenvolvimento", "Desenvolvimento", "3x8-10", "sem roubar lombar"],
+      ["elevacao-lateral", "Elevação lateral", "4x12-20", "perto da falha"],
+      ["triceps-corda", "Tríceps corda", "3x10-15", "cotovelo estável"],
+      ["triceps-frances", "Tríceps francês/testa", "3x10-12", "amplitude confortável"],
+    ],
+  },
+  2: {
+    title: "Costas + bíceps",
+    time: "20h",
+    detail: "puxada e remada",
+    focus: "Remada pesada, costas cheias e bíceps limpo, sem roubar.",
+    preWindow: "18h30-19h30",
+    postWindow: "após 21h",
+    exercises: [
+      ["puxada-alta", "Barra fixa/puxada alta", "4x8-10", "peito alto"],
+      ["remada-pesada", "Remada curvada/cavalinho", "4x6-10", "progressão principal"],
+      ["remada-baixa", "Remada baixa", "3x10-12", "contrair escápulas"],
+      ["pulldown", "Pulldown braço reto", "3x12-15", "latíssimo"],
+      ["rosca-direta", "Rosca direta", "3x8-10", "sem balanço"],
+      ["rosca-inclinada", "Rosca alternada/inclinada", "3x10-12", "alongar"],
+      ["rosca-martelo", "Rosca martelo", "2-3x12", "antebraço junto"],
+    ],
+  },
+  3: {
+    title: "Pernas completo",
+    time: "10h",
+    detail: "quadríceps + posterior",
+    focus: "Forte o bastante para progredir, sem destruir a recuperação da semana.",
+    preWindow: "08h30-09h30",
+    postWindow: "após 11h",
+    exercises: [
+      ["agachamento-leg", "Agachamento ou leg press", "4x6-10", "base do dia"],
+      ["hack-passada", "Hack ou passada", "3x8-12", "amplitude"],
+      ["extensora", "Cadeira extensora", "3x12-15", "pico de contração"],
+      ["flexora", "Mesa flexora", "4x10-15", "sem pressa"],
+      ["stiff", "Stiff/romeno", "3x8-10", "posterior"],
+      ["panturrilha", "Panturrilha", "5x10-20", "pausa embaixo"],
+    ],
+  },
+  4: {
+    title: "Cardio + abdômen",
+    time: "20h",
+    detail: "dia de controle",
+    focus: "Melhorar condicionamento e HDL sem moer articulação.",
+    preWindow: "18h30-19h30",
+    postWindow: "após 21h",
+    exercises: [
+      ["cardio-z2", "Cardio zona 2", "35-45 min", "respiração controlada"],
+      ["abdominal-maquina", "Abdominal máquina/crunch", "3x12-20", "sem pressa"],
+      ["elevacao-pernas", "Elevação de pernas", "3x10-15", "pelve controlada"],
+      ["prancha", "Prancha", "3 séries", "tempo de qualidade"],
+      ["mobilidade", "Mobilidade", "8-12 min", "quadril/torácica/ombro"],
+    ],
+  },
+  5: {
+    title: "Ombros + braços",
+    time: "10h",
+    detail: "deltoide e braços",
+    focus: "Volume em lateral/posterior de ombro; braços com execução limpa.",
+    preWindow: "08h30-09h30",
+    postWindow: "após 11h",
+    exercises: [
+      ["desenvolvimento-ombro", "Desenvolvimento halter/máquina", "4x6-10", "principal"],
+      ["lateral-volume", "Elevação lateral", "5x12-20", "controle"],
+      ["crucifixo-inverso", "Crucifixo inverso", "4x12-20", "posterior"],
+      ["encolhimento", "Encolhimento", "3x10-15", "trapézio"],
+      ["rosca-scott", "Rosca Scott", "3x8-12", "cotovelo fixo"],
+      ["rosca-cabo", "Rosca cabo", "3x12-15", "tensão constante"],
+      ["triceps-pulley", "Tríceps pulley", "3x10-15", "cotovelo firme"],
+      ["paralela", "Paralela/tríceps máquina", "3x8-12", "sem dor no ombro"],
+    ],
+  },
+  6: {
+    title: "Posterior + costas leve",
+    time: "10h",
+    detail: "pontos fracos",
+    focus: "Posterior, panturrilha e costas com qualidade, sem disputar com o treino pesado.",
+    preWindow: "08h30-09h30",
+    postWindow: "após 11h",
+    exercises: [
+      ["romeno", "Terra romeno/stiff", "4x6-10", "posterior pesado"],
+      ["flexora-sabado", "Flexora", "4x10-15", "controle"],
+      ["hip-thrust", "Hip thrust/glúteo máquina", "3x8-12", "força"],
+      ["remada-apoiada", "Remada apoiada", "3x10-12", "sem lombar"],
+      ["puxada-neutra", "Puxada neutra", "3x10-12", "amplitude"],
+      ["panturrilha-sabado", "Panturrilha", "4x12-20", "volume"],
+      ["abdomen-sabado", "Abdômen", "2-3 séries", "rápido e limpo"],
+    ],
+  },
+};
+
+const personalTrainingWeekdays = new Set([1, 3, 5]);
+const rotatingPersonalTemplates = [1, 2, 3, 5, 6].map((weekday) => trainingPlanByWeekday[weekday]);
+const specialTrainingDates = {
+  "2026-05-26": {
+    title: "Pré-exame",
+    time: "20h",
+    detail: "ombro leve ou descanso",
+    focus: "Sem treino pesado, sem falha e sem cardio intenso para não sujar o exame de amanhã.",
+    preWindow: "",
+    postWindow: "",
+    exercises: [
+      ["mobilidade-ombro", "Mobilidade de ombro", "8-10 min", "leve"],
+      ["elevacao-lateral-leve", "Elevação lateral leve", "2-3x15-20", "longe da falha"],
+      ["face-pull-leve", "Face pull leve", "2-3x15-20", "técnica"],
+      ["caminhada-leve", "Caminhada leve", "15-25 min", "sem cansar"],
+    ],
+  },
+  "2026-05-27": {
+    title: "Personal pós-exame",
+    time: "após coleta",
+    detail: "técnica moderada",
+    focus: "Treine só depois da coleta. Nada de PR; use o personal para aprender execução.",
+    preWindow: "",
+    postWindow: "",
+    exercises: [
+      ["tecnica-supino", "Técnica de supino", "3x8 leve", "aprendizado"],
+      ["tecnica-remada", "Técnica de remada", "3x10 leve", "escápulas"],
+      ["tecnica-agacho", "Técnica de agacho/leg", "3x10 leve", "controle"],
+      ["mobilidade-pos-exame", "Mobilidade", "8-12 min", "soltar"],
+    ],
+  },
+};
+
+const supportTrainingByWeekday = {
+  0: trainingPlanByWeekday[0],
+  2: {
+    title: "Suporte leve",
+    time: "20h",
+    detail: "cardio leve + mobilidade",
+    focus: "Aumentar gasto e praticar movimento sem atrapalhar os treinos com personal.",
+    preWindow: "18h30-19h30",
+    postWindow: "após 21h",
+    exercises: [
+      ["cardio-leve-terca", "Cardio zona 2", "25-35 min", "moderado"],
+      ["mobilidade-terca", "Mobilidade", "8-12 min", "quadril/ombro"],
+      ["abdomen-terca", "Abdômen leve", "2-3 séries", "sem falha"],
+    ],
+  },
+  4: trainingPlanByWeekday[4],
+  6: {
+    title: "Recuperação ativa",
+    time: "Livre",
+    detail: "cardio + pontos fracos leves",
+    focus: "Circular sangue, manter condicionamento e chegar bem no próximo treino com personal.",
+    preWindow: "",
+    postWindow: "",
+    exercises: [
+      ["cardio-sabado", "Cardio zona 2", "30-45 min", "constante"],
+      ["panturrilha-leve", "Panturrilha leve", "3x15-20", "opcional"],
+      ["abdomen-sabado-leve", "Abdômen", "2-3 séries", "opcional"],
+      ["mobilidade-sabado", "Mobilidade", "8-12 min", "leve"],
+    ],
+  },
+};
 
 let state = loadState();
 let syncTimer = null;
@@ -127,6 +317,9 @@ let syncAgain = false;
 cleanVersionParam();
 
 const els = {
+  workspace: document.querySelector("#workspace"),
+  tabButtons: document.querySelectorAll("[data-tab]"),
+  tabPanels: document.querySelectorAll("[data-tab-panel]"),
   startDate: document.querySelector("#startDate"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   dayTitle: document.querySelector("#dayTitle"),
@@ -139,6 +332,8 @@ const els = {
   macroCards: document.querySelector("#macroCards"),
   mealChecks: document.querySelector("#mealChecks"),
   habitChecks: document.querySelector("#habitChecks"),
+  trainingPlan: document.querySelector("#trainingPlan"),
+  trainingScore: document.querySelector("#trainingScore"),
   focusBox: document.querySelector("#focusBox"),
   dailyTotals: document.querySelector("#dailyTotals"),
   alertChecks: document.querySelector("#alertChecks"),
@@ -168,6 +363,7 @@ function loadState() {
       return {
         startDate: parsed.startDate,
         selectedDay: clampDay(parsed.selectedDay || 1),
+        activeTab: validTab(parsed.activeTab),
         entries: parsed.entries,
       };
     }
@@ -178,6 +374,7 @@ function loadState() {
   return {
     startDate: PLAN_START_DATE,
     selectedDay: 1,
+    activeTab: "today",
     entries: {},
   };
 }
@@ -262,6 +459,7 @@ function mergeStates(localState, remoteState) {
   const merged = {
     startDate: remoteState?.startDate || localState.startDate || toISO(new Date()),
     selectedDay: localState.selectedDay || remoteState?.selectedDay || 1,
+    activeTab: validTab(localState.activeTab || remoteState?.activeTab),
     entries: {},
     updatedAt: newerTimestamp(localState.updatedAt, remoteState?.updatedAt),
   };
@@ -372,6 +570,19 @@ function formatDate(isoDate) {
   }).format(fromISO(isoDate));
 }
 
+function escapeHTML(value = "") {
+  return String(value).replace(/[&<>"']/g, (char) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return entities[char];
+  });
+}
+
 function dayForDate(isoDate) {
   const start = fromISO(state.startDate);
   const date = fromISO(isoDate);
@@ -385,6 +596,10 @@ function todayPlanDay() {
 function clampDay(day) {
   const numeric = Number(day) || 1;
   return Math.max(1, Math.min(TOTAL_DAYS, numeric));
+}
+
+function validTab(tab) {
+  return VALID_TABS.includes(tab) ? tab : "today";
 }
 
 function currentPhase(day) {
@@ -403,15 +618,32 @@ function getEntry(day = state.selectedDay) {
       cardioMin: "",
       water: "",
       waterUnits: 0,
+      pressure: "",
+      restingPulse: "",
       energy: "",
       notes: "",
+      training: {},
       refeed: false,
       updatedAt: "",
     };
   }
   if (!state.entries[key].checks) state.entries[key].checks = {};
   if (!state.entries[key].alerts) state.entries[key].alerts = {};
+  ensureTrainingEntry(state.entries[key]);
   return state.entries[key];
+}
+
+function ensureTrainingEntry(entry) {
+  if (!entry.training) entry.training = {};
+  if (!entry.training.done) entry.training.done = {};
+  if (!entry.training.load) entry.training.load = {};
+  if (!entry.training.reps) entry.training.reps = {};
+  if (entry.training.duration === undefined) entry.training.duration = "";
+  if (entry.training.rpe === undefined) entry.training.rpe = "";
+  if (entry.training.pump === undefined) entry.training.pump = "";
+  if (entry.training.strength === undefined) entry.training.strength = "";
+  if (entry.training.notes === undefined) entry.training.notes = "";
+  return entry.training;
 }
 
 function touchEntry(entry) {
@@ -451,6 +683,7 @@ function waterUnits(entry) {
 
 function render() {
   state.selectedDay = clampDay(state.selectedDay);
+  state.activeTab = validTab(state.activeTab);
   const day = state.selectedDay;
   const phase = currentPhase(day);
   const entry = getEntry(day);
@@ -470,6 +703,7 @@ function render() {
 
   renderMacroCards(phase, day, selectedDate);
   renderChecks(phase, entry, selectedDate);
+  renderTrainingPanel(entry, selectedDate);
   renderDailyTotals(phase, day, selectedDate);
   renderFields(entry);
   renderAlerts(entry);
@@ -477,9 +711,33 @@ function render() {
   renderWeeklyReview();
   renderSummary();
   drawChart();
+  renderActiveTab();
 
   els.prevDayBtn.disabled = day === 1;
   els.nextDayBtn.disabled = day === TOTAL_DAYS;
+}
+
+function renderActiveTab() {
+  const activeTab = validTab(state.activeTab);
+  if (els.workspace) els.workspace.dataset.activeTab = activeTab;
+
+  els.tabButtons.forEach((button) => {
+    const selected = button.dataset.tab === activeTab;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-selected", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+
+  els.tabPanels.forEach((panel) => {
+    const visible = panel.dataset.tabPanel === activeTab;
+    panel.hidden = !visible;
+  });
+}
+
+function setActiveTab(tab) {
+  state.activeTab = validTab(tab);
+  saveState({ cloud: false });
+  renderActiveTab();
 }
 
 function phaseTitleForDay(phase, day) {
@@ -494,10 +752,10 @@ function renderMacroCards(phase, day, selectedDate) {
   const cards = [
     ["Proteína", phase.macros.proteina, "base diária"],
     ["Carbo", phase.macros.carbo, "fase atual"],
-    ["Carne", phase.totals.carne, "total do dia"],
-    ["Batata", phase.totals.batata, "sem refeed"],
+    ["Gordura", phase.macros.gordura, "hormônios e saciedade"],
+    ["Kcal", phase.macros.kcal, "ponto de partida"],
     ["Cardio", phase.macros.cardio, "alvo mínimo"],
-    ["Treino", training.value, training.detail],
+    ["Treino", training.value, training.title],
   ];
 
   els.macroCards.innerHTML = cards
@@ -516,7 +774,7 @@ function renderMacroCards(phase, day, selectedDate) {
 function nextRefeedInfo(day) {
   const next = REFEED_DAYS.find((refeedDay) => refeedDay >= day);
   if (REFEED_DAYS.includes(day)) {
-    return { short: "Hoje", detail: "+300-400 g batata" };
+    return { short: "Hoje", detail: "+50-80 g carbo se performance pedir" };
   }
   if (next) {
     const distance = next - day;
@@ -525,53 +783,68 @@ function nextRefeedInfo(day) {
       detail: `em ${distance} dia${distance === 1 ? "" : "s"}`,
     };
   }
-  return { short: "Livre", detail: "só se precisar" };
+  return { short: "Livre", detail: "ajuste só por peso/cintura/performance" };
 }
 
 function trainingForDate(isoDate) {
   const weekday = fromISO(isoDate).getDay();
-  const morningDays = new Set([1, 3, 5, 6]);
-  const nightDays = new Set([2, 4]);
-
-  if (morningDays.has(weekday)) {
-    return {
-      hasTraining: true,
-      value: "10h",
-      detail: "musculação de manhã",
-      preWindow: "08h30-09h30",
-      postWindow: "após 11h",
-    };
-  }
-
-  if (nightDays.has(weekday)) {
-    return {
-      hasTraining: true,
-      value: "20h",
-      detail: "musculação à noite",
-      preWindow: "18h30-19h30",
-      postWindow: "após 21h",
-    };
-  }
+  const plan =
+    specialTrainingDates[isoDate] ||
+    (personalTrainingWeekdays.has(weekday)
+      ? personalTrainingForDate(isoDate)
+      : supportTrainingByWeekday[weekday] || trainingPlanByWeekday[0]);
 
   return {
-    hasTraining: false,
-    value: "Descanso",
-    detail: "sem musculação",
-    preWindow: "",
-    postWindow: "",
+    ...plan,
+    hasTraining: plan.exercises.length > 0,
+    value: plan.time,
+    exercises: plan.exercises.map(([id, name, target, cue]) => ({ id, name, target, cue })),
   };
+}
+
+function personalTrainingForDate(isoDate) {
+  const index = personalTrainingIndex(isoDate);
+  const template = rotatingPersonalTemplates[index % rotatingPersonalTemplates.length];
+  return {
+    ...template,
+    time: "10h",
+    detail: "com personal",
+    focus: `Com personal: ${template.focus}`,
+    preWindow: "08h30-09h30",
+    postWindow: "após 11h",
+  };
+}
+
+function personalTrainingIndex(isoDate) {
+  const start = fromISO(state?.startDate || PLAN_START_DATE);
+  const target = fromISO(isoDate);
+  let count = 0;
+  const cursor = new Date(start);
+
+  while (cursor <= target) {
+    const cursorIso = toISO(cursor);
+    if (personalTrainingWeekdays.has(cursor.getDay()) && !specialTrainingDates[cursorIso]) count += 1;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return Math.max(0, count - 1);
 }
 
 function habitChecksForDate(isoDate) {
   const training = trainingForDate(isoDate);
+  const weekday = fromISO(isoDate).getDay();
   const checks = [...baseHabitChecks];
 
   if (training.hasTraining) {
     checks.unshift([
       "treino",
       `Treino ${training.value}`,
-      "60-75 min, carga alta, progressão e poucas firulas.",
+      `${training.title}: progressão com execução limpa.`,
     ]);
+  }
+
+  if ([1, 3, 5].includes(weekday)) {
+    checks.push(["pressao", "Pressão", "Conferir e anotar se subir."]);
   }
 
   return checks;
@@ -625,14 +898,14 @@ function mealScheduleForTraining(training) {
 
 function focusTextForDay(day, training) {
   if (!training.hasTraining) {
-    return "Sem musculação programada hoje. Mantenha dieta, cardio, água e sono para não perder ritmo.";
+    return "Sem musculação programada hoje. Mantenha dieta, caminhada leve, água e sono para não perder ritmo.";
   }
 
   if (day >= 31) {
-    return `Treino às ${training.value}: concentre carbo no pré e pós, mantenha o resto do dia limpo e preserve a carga.`;
+    return `${training.title} às ${training.value}: concentre carbo no pré e pós, mantenha o resto do dia limpo e preserve a carga.`;
   }
 
-  return `Treino às ${training.value}: cumpra pré e pós com calma, faça o cardio da fase e mantenha água alta.`;
+  return `${training.title} às ${training.value}: cumpra pré e pós com calma, faça o cardio da fase e mantenha água alta.`;
 }
 
 function renderChecks(phase, entry, selectedDate) {
@@ -643,6 +916,111 @@ function renderChecks(phase, entry, selectedDate) {
   els.habitChecks.innerHTML = habitChecksForDate(selectedDate)
     .map(([id, name, detail]) => checkRow(id, name, detail, Boolean(entry.checks[id])))
     .join("") + renderWaterTracker(entry, selectedDate);
+}
+
+function renderTrainingPanel(entry, selectedDate) {
+  const training = trainingForDate(selectedDate);
+  const trainingEntry = ensureTrainingEntry(entry);
+  const completion = trainingCompletion(training, trainingEntry);
+
+  els.trainingScore.textContent = training.hasTraining
+    ? `${completion.done}/${completion.total} exercícios`
+    : "recuperação";
+
+  const exerciseRows = training.exercises.length
+    ? training.exercises.map((exercise) => exerciseRow(exercise, trainingEntry)).join("")
+    : `<div class="callout quiet training-rest">Caminhada leve, mobilidade e sono. Hoje o treino é chegar melhor amanhã.</div>`;
+
+  els.trainingPlan.innerHTML = `
+    <div class="training-brief">
+      <div>
+        <span>Horário</span>
+        <strong>${training.value}</strong>
+        <small>${training.detail}</small>
+      </div>
+      <div>
+        <span>Foco</span>
+        <strong>${training.title}</strong>
+        <small>${training.focus}</small>
+      </div>
+      <div>
+        <span>Janela</span>
+        <strong>${training.preWindow || "livre"}</strong>
+        <small>${training.postWindow || "sem pré/pós obrigatório"}</small>
+      </div>
+    </div>
+    <div class="exercise-list">${exerciseRows}</div>
+    <div class="training-log-grid">
+      <label>
+        <span>Duração</span>
+        <input data-training-field="duration" type="number" min="0" step="1" inputmode="numeric" placeholder="min" value="${escapeHTML(trainingEntry.duration)}" />
+      </label>
+      <label>
+        <span>RPE</span>
+        <select data-training-field="rpe">
+          <option value="">-</option>
+          ${[6, 7, 8, 9, 10]
+            .map((value) => `<option value="${value}" ${String(trainingEntry.rpe) === String(value) ? "selected" : ""}>${value}</option>`)
+            .join("")}
+        </select>
+      </label>
+      <label>
+        <span>Pump</span>
+        <select data-training-field="pump">
+          <option value="">-</option>
+          ${[1, 2, 3, 4, 5]
+            .map((value) => `<option value="${value}" ${String(trainingEntry.pump) === String(value) ? "selected" : ""}>${value}</option>`)
+            .join("")}
+        </select>
+      </label>
+      <label>
+        <span>Força</span>
+        <select data-training-field="strength">
+          <option value="">-</option>
+          ${["subiu", "igual", "caiu"]
+            .map((value) => `<option value="${value}" ${trainingEntry.strength === value ? "selected" : ""}>${value}</option>`)
+            .join("")}
+        </select>
+      </label>
+    </div>
+    <label class="note-field training-note">
+      <span>Notas do treino</span>
+      <textarea data-training-field="notes" rows="3" placeholder="Carga boa, dor, pump, pressão, algo fora do normal">${escapeHTML(trainingEntry.notes)}</textarea>
+    </label>
+  `;
+}
+
+function exerciseRow(exercise, trainingEntry) {
+  return `
+    <div class="exercise-row">
+      <label class="exercise-check">
+        <input data-training-done="${exercise.id}" type="checkbox" ${trainingEntry.done[exercise.id] ? "checked" : ""} />
+        <span>
+          <span class="check-title">${exercise.name}</span>
+          <span class="check-detail">${exercise.target} · ${exercise.cue}</span>
+        </span>
+      </label>
+      <label class="exercise-input">
+        <span>Carga</span>
+        <input data-training-load="${exercise.id}" type="text" inputmode="decimal" placeholder="kg" value="${escapeHTML(trainingEntry.load[exercise.id])}" />
+      </label>
+      <label class="exercise-input">
+        <span>Reps</span>
+        <input data-training-reps="${exercise.id}" type="text" inputmode="numeric" placeholder="última" value="${escapeHTML(trainingEntry.reps[exercise.id])}" />
+      </label>
+    </div>
+  `;
+}
+
+function trainingCompletion(training, trainingEntry) {
+  if (!training.hasTraining) return { done: 0, total: 0, percent: null };
+  const done = training.exercises.filter((exercise) => trainingEntry.done[exercise.id]).length;
+  const total = training.exercises.length;
+  return {
+    done,
+    total,
+    percent: total ? Math.round((done / total) * 100) : null,
+  };
 }
 
 function checkRow(id, title, detail, checked, meta = "") {
@@ -712,14 +1090,16 @@ function renderDailyTotals(phase, day, selectedDate) {
   const refeedInfo = nextRefeedInfo(day);
   const training = trainingForDate(selectedDate);
   const totals = [
-    ["Treino", `${training.value} · ${training.detail}`],
-    ["Carne moída", phase.totals.carne],
-    ["Batata", phase.totals.batata],
-    ["Whey", phase.totals.whey],
+    ["Treino", `${training.value} · ${training.title}`],
+    ["Proteína", phase.totals.proteina],
+    ["Carbo", phase.totals.carbo],
+    ["Gordura", phase.totals.gordura],
     ["Cardio", phase.totals.cardio],
     ["Água", phase.totals.agua],
     ["Sono", phase.totals.sono],
+    ["Fibra", phase.totals.fibra],
     ["Carbo alto", `${refeedInfo.short} · ${refeedInfo.detail}`],
+    ["Cálcio", phase.totals.calcio],
   ];
 
   els.focusBox.textContent = focusTextForDay(day, training);
@@ -760,10 +1140,13 @@ function renderAlerts(entry) {
     .join("");
 
   const activeCount = alertChecks.filter(([id]) => entry.alerts[id]).length;
+  const medicalSignal = entry.alerts.pressaoAlta || entry.alerts.dorCabeca || entry.alerts.faltaAr;
   els.alertAdvice.className = activeCount ? "callout alert" : "callout quiet";
-  els.alertAdvice.textContent = activeCount
-    ? "Sinal amarelo: aumente carbo em 50-100 g, preserve o treino e confira sono, água e sódio antes de mexer no resto."
-    : "Sem sinais críticos marcados. Mantenha o plano, o cardio e a consistência de sal/água.";
+  els.alertAdvice.textContent = medicalSignal
+    ? "Sinal importante: confira pressão, reduza a intensidade e procure atendimento se houver dor no peito, falta de ar, desmaio ou dor de cabeça forte persistente."
+    : activeCount
+      ? "Sinal amarelo: confira sono, água, pressão e carga de treino antes de mexer na dieta."
+      : "Sem sinais críticos marcados. Mantenha o plano, o cardio e a consistência de sal/água.";
 }
 
 function renderTimeline() {
@@ -814,6 +1197,13 @@ function renderWeeklyReview() {
     const waists = activeDays
       .map((day) => Number(state.entries[String(day)]?.waist))
       .filter((value) => Number.isFinite(value) && value > 0);
+    const plannedTrainingDays = days.filter((day) => trainingForDate(addDays(state.startDate, day - 1)).hasTraining);
+    const completedTrainingDays = plannedTrainingDays.filter((day) => {
+      const entry = state.entries[String(day)];
+      if (!entry) return false;
+      const training = trainingForDate(addDays(state.startDate, day - 1));
+      return trainingCompletion(training, ensureTrainingEntry(entry)).percent >= 80;
+    });
 
     return {
       label: `${start}-${end}`,
@@ -822,6 +1212,7 @@ function renderWeeklyReview() {
       weightDelta: formatDelta(weights),
       waistDelta: formatDelta(waists),
       cardio: cardioTotal ? `${cardioTotal} min` : "-",
+      training: plannedTrainingDays.length ? `${completedTrainingDays.length}/${plannedTrainingDays.length}` : "-",
       status: weeklyStatus(avgAdherence, alertCount, activeDays.length),
     };
   });
@@ -833,6 +1224,7 @@ function renderWeeklyReview() {
       <span>Peso</span>
       <span>Cintura</span>
       <span>Cardio</span>
+      <span>Treino</span>
       <span>Status</span>
     </div>
     ${weeks
@@ -844,6 +1236,7 @@ function renderWeeklyReview() {
             <span>${week.weightDelta}</span>
             <span>${week.waistDelta}</span>
             <span>${week.cardio}</span>
+            <span>${week.training}</span>
             <span>${week.status}</span>
           </div>
         `,
@@ -856,18 +1249,36 @@ function entryHasData(entry) {
   if (!entry) return false;
   const hasChecks = Object.values(entry.checks || {}).some(Boolean);
   const hasAlerts = Object.values(entry.alerts || {}).some(Boolean);
+  const hasTraining = trainingHasData(entry.training);
   return Boolean(
     hasChecks ||
       hasAlerts ||
+      hasTraining ||
       entry.weight ||
       entry.waist ||
       entry.sleep ||
       entry.cardioMin ||
       entry.water ||
       entry.waterUnits ||
+      entry.pressure ||
+      entry.restingPulse ||
       entry.energy ||
       entry.notes ||
       entry.refeed,
+  );
+}
+
+function trainingHasData(training) {
+  if (!training) return false;
+  return Boolean(
+    Object.values(training.done || {}).some(Boolean) ||
+      Object.values(training.load || {}).some(Boolean) ||
+      Object.values(training.reps || {}).some(Boolean) ||
+      training.duration ||
+      training.rpe ||
+      training.pump ||
+      training.strength ||
+      training.notes,
   );
 }
 
@@ -1025,6 +1436,33 @@ function updateField(field) {
   saveState();
 }
 
+function updateTrainingControl(target) {
+  const entry = getEntry();
+  const trainingEntry = ensureTrainingEntry(entry);
+
+  if (target.matches("[data-training-done]")) {
+    trainingEntry.done[target.dataset.trainingDone] = target.checked;
+    const training = trainingForDate(addDays(state.startDate, state.selectedDay - 1));
+    const completion = trainingCompletion(training, trainingEntry);
+    entry.checks.treino = completion.percent !== null && completion.percent >= 80;
+  }
+
+  if (target.matches("[data-training-load]")) {
+    trainingEntry.load[target.dataset.trainingLoad] = target.value;
+  }
+
+  if (target.matches("[data-training-reps]")) {
+    trainingEntry.reps[target.dataset.trainingReps] = target.value;
+  }
+
+  if (target.matches("[data-training-field]")) {
+    trainingEntry[target.dataset.trainingField] = target.value;
+  }
+
+  touchEntry(entry);
+  saveState();
+}
+
 document.addEventListener("change", (event) => {
   const target = event.target;
 
@@ -1033,6 +1471,12 @@ document.addEventListener("change", (event) => {
     state.selectedDay = todayPlanDay();
     state.updatedAt = new Date().toISOString();
     saveState();
+    render();
+    return;
+  }
+
+  if (target.matches("[data-training-done], [data-training-field]")) {
+    updateTrainingControl(target);
     render();
     return;
   }
@@ -1074,10 +1518,35 @@ document.addEventListener("change", (event) => {
 
 document.addEventListener("input", (event) => {
   const target = event.target;
+  if (target.matches("[data-training-load], [data-training-reps], [data-training-field]")) {
+    updateTrainingControl(target);
+    renderWeeklyReview();
+    renderSummary();
+    return;
+  }
+
   if (!target.matches("[data-field]") || target.type === "checkbox") return;
   updateField(target);
   renderSummary();
   drawChart();
+});
+
+els.tabButtons.forEach((button) => {
+  button.addEventListener("click", () => setActiveTab(button.dataset.tab));
+});
+
+document.addEventListener("keydown", (event) => {
+  const currentButton = event.target.closest?.("[data-tab]");
+  if (!currentButton || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+
+  const buttons = Array.from(els.tabButtons);
+  const currentIndex = buttons.indexOf(currentButton);
+  const direction = event.key === "ArrowRight" ? 1 : -1;
+  const nextButton = buttons[(currentIndex + direction + buttons.length) % buttons.length];
+
+  event.preventDefault();
+  nextButton.focus();
+  setActiveTab(nextButton.dataset.tab);
 });
 
 els.timeline.addEventListener("click", (event) => {
