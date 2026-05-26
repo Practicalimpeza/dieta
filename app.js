@@ -10,6 +10,8 @@ const REFEED_DAYS = [12, 24, 36];
 const WATER_STEP_LITERS = 0.5;
 const WATER_MIN_UNITS = 8;
 const WATER_IDEAL_UNITS = 10;
+const WATER_PACE_START_MINUTES = 7 * 60;
+const WATER_PACE_END_MINUTES = 22 * 60;
 
 const phases = [
   {
@@ -577,22 +579,48 @@ function habitChecksForDate(isoDate) {
 
 function mealsForDate(phase, isoDate) {
   const training = trainingForDate(isoDate);
+  const schedule = mealScheduleForTraining(training);
 
-  return phase.meals.map(([name, detail]) => {
-    if (name === "Pré-treino") {
-      return training.hasTraining
-        ? [`Pré-treino (${training.preWindow})`, detail]
-        : ["Refeição 3", detail];
-    }
+  return schedule.map(({ index, title, time }) => {
+    const [baseTitle, detail] = phase.meals[index];
 
-    if (name === "Pós-treino") {
-      return training.hasTraining
-        ? [`Pós-treino (${training.postWindow})`, detail]
-        : ["Refeição 4", detail];
-    }
-
-    return [name, detail];
+    return {
+      id: `meal-${index}`,
+      title: title || baseTitle,
+      detail,
+      time,
+    };
   });
+}
+
+function mealScheduleForTraining(training) {
+  if (training.value === "10h") {
+    return [
+      { index: 0, time: "07h00" },
+      { index: 2, title: "Pré-treino", time: training.preWindow },
+      { index: 3, title: "Pós-treino", time: training.postWindow },
+      { index: 1, time: "14h00" },
+      { index: 4, time: "20h00-21h00" },
+    ];
+  }
+
+  if (training.value === "20h") {
+    return [
+      { index: 0, time: "08h00" },
+      { index: 1, time: "12h30" },
+      { index: 2, title: "Pré-treino", time: training.preWindow },
+      { index: 3, title: "Pós-treino", time: training.postWindow },
+      { index: 4, time: "22h30" },
+    ];
+  }
+
+  return [
+    { index: 0, time: "08h00" },
+    { index: 1, time: "12h00" },
+    { index: 2, title: "Refeição 3", time: "15h30" },
+    { index: 3, title: "Refeição 4", time: "19h00" },
+    { index: 4, time: "21h30" },
+  ];
 }
 
 function focusTextForDay(day, training) {
@@ -609,41 +637,45 @@ function focusTextForDay(day, training) {
 
 function renderChecks(phase, entry, selectedDate) {
   els.mealChecks.innerHTML = mealsForDate(phase, selectedDate)
-    .map(([name, detail], index) => {
-      const id = `meal-${index}`;
-      return checkRow(id, name, detail, Boolean(entry.checks[id]));
-    })
+    .map((meal) => checkRow(meal.id, meal.title, meal.detail, Boolean(entry.checks[meal.id]), meal.time))
     .join("");
 
   els.habitChecks.innerHTML = habitChecksForDate(selectedDate)
     .map(([id, name, detail]) => checkRow(id, name, detail, Boolean(entry.checks[id])))
-    .join("") + renderWaterTracker(entry);
+    .join("") + renderWaterTracker(entry, selectedDate);
 }
 
-function checkRow(id, title, detail, checked) {
+function checkRow(id, title, detail, checked, meta = "") {
   return `
     <label class="check-row">
       <input data-check="${id}" type="checkbox" ${checked ? "checked" : ""} />
       <span>
         <span class="check-title">${title}</span>
+        ${meta ? `<span class="check-time">${meta}</span>` : ""}
         <span class="check-detail">${detail}</span>
       </span>
     </label>
   `;
 }
 
-function renderWaterTracker(entry) {
+function renderWaterTracker(entry, selectedDate) {
   const units = waterUnits(entry);
   const liters = (units * WATER_STEP_LITERS).toFixed(1).replace(".", ",");
   const nextLiters = ((units + 1) * WATER_STEP_LITERS).toFixed(1).replace(".", ",");
-  const percent = Math.min(100, Math.round((units / WATER_MIN_UNITS) * 100));
+  const percent = Math.min(100, Math.round((units / WATER_IDEAL_UNITS) * 100));
+  const pace = waterPaceForDate(selectedDate);
+  const marker = pace
+    ? `<span class="water-progress-marker" style="left: ${pace.markerPercent}%" title="Ritmo agora: ${pace.litersLabel}"></span>`
+    : "";
   const title = units >= WATER_MIN_UNITS ? "Água mínima completa" : "Água 500 ml";
   const detail =
     units >= WATER_IDEAL_UNITS
       ? "5,0 L registrados. Ideal do dia completo."
-      : units >= WATER_MIN_UNITS
-        ? `${liters} L registrados. Se beber mais 500 ml, vai para ${nextLiters} L.`
-        : `${liters} L de 4,0 L mínimos. Marque cada garrafa/copo de 500 ml.`;
+      : pace
+        ? `${liters} L registrados. Ritmo agora: ~${pace.litersLabel}.`
+        : units >= WATER_MIN_UNITS
+          ? `${liters} L registrados. Se beber mais 500 ml, vai para ${nextLiters} L.`
+          : `${liters} L de 4,0 L mínimos. Marque cada garrafa/copo de 500 ml.`;
 
   return `
     <label class="check-row water-row">
@@ -652,11 +684,28 @@ function renderWaterTracker(entry) {
         <span class="check-title">${title}</span>
         <span class="check-detail">${detail}</span>
         <span class="water-progress" aria-label="Progresso de água">
-          <span style="width: ${percent}%"></span>
+          <span class="water-progress-fill" style="width: ${percent}%"></span>
+          ${marker}
         </span>
       </span>
     </label>
   `;
+}
+
+function waterPaceForDate(selectedDate) {
+  if (selectedDate !== toISO(new Date())) return null;
+
+  const now = new Date();
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const progress =
+    (minutes - WATER_PACE_START_MINUTES) / (WATER_PACE_END_MINUTES - WATER_PACE_START_MINUTES);
+  const expectedUnits = Math.max(0, Math.min(WATER_IDEAL_UNITS, progress * WATER_IDEAL_UNITS));
+  const roundedLiters = Math.round(expectedUnits) * WATER_STEP_LITERS;
+
+  return {
+    markerPercent: Math.min(98, Math.max(2, Math.round((expectedUnits / WATER_IDEAL_UNITS) * 100))),
+    litersLabel: `${roundedLiters.toFixed(1).replace(".", ",")} L`,
+  };
 }
 
 function renderDailyTotals(phase, day, selectedDate) {
