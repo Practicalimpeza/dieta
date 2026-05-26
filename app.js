@@ -136,7 +136,7 @@ const trainingPlanByWeekday = {
   0: {
     title: "Descanso ativo",
     time: "Livre",
-    detail: "caminhada leve + mobilidade",
+    detail: "descanso ou caminhada",
     focus: "Recuperar, manter passos e chegar inteiro na segunda.",
     preWindow: "",
     postWindow: "",
@@ -193,18 +193,14 @@ const trainingPlanByWeekday = {
     ],
   },
   4: {
-    title: "Cardio + abdômen",
+    title: "Cardio leve",
     time: "20h",
-    detail: "dia de controle",
+    detail: "zona 2",
     focus: "Melhorar condicionamento e HDL sem moer articulação.",
     preWindow: "18h30-19h30",
     postWindow: "após 21h",
     exercises: [
       ["cardio-z2", "Cardio zona 2", "35-45 min", "respiração controlada"],
-      ["abdominal-maquina", "Abdominal máquina/crunch", "3x12-20", "sem pressa"],
-      ["elevacao-pernas", "Elevação de pernas", "3x10-15", "pelve controlada"],
-      ["prancha", "Prancha", "3 séries", "tempo de qualidade"],
-      ["mobilidade", "Mobilidade", "8-12 min", "quadril/torácica/ombro"],
     ],
   },
   5: {
@@ -245,20 +241,19 @@ const trainingPlanByWeekday = {
 };
 
 const personalTrainingWeekdays = new Set([1, 3, 5]);
-const rotatingPersonalTemplates = [1, 2, 3, 5, 6].map((weekday) => trainingPlanByWeekday[weekday]);
+const heavyTrainingWeekdays = new Set([1, 2, 3, 4, 5, 6]);
+const rotatingTrainingTemplates = [1, 2, 3, 5, 6].map((weekday) => trainingPlanByWeekday[weekday]);
 const specialTrainingDates = {
   "2026-05-26": {
     title: "Pré-exame",
     time: "20h",
-    detail: "ombro leve ou descanso",
+    detail: "descanso ou caminhada",
     focus: "Sem treino pesado, sem falha e sem cardio intenso para não sujar o exame de amanhã.",
     preWindow: "",
     postWindow: "",
     exercises: [
-      ["mobilidade-ombro", "Mobilidade de ombro", "8-10 min", "leve"],
-      ["elevacao-lateral-leve", "Elevação lateral leve", "2-3x15-20", "longe da falha"],
-      ["face-pull-leve", "Face pull leve", "2-3x15-20", "técnica"],
-      ["caminhada-leve", "Caminhada leve", "15-25 min", "sem cansar"],
+      ["caminhada-leve", "Caminhada leve opcional", "15-25 min", "sem cansar"],
+      ["descanso-pre-exame", "Descanso", "prioridade", "hidratar e dormir"],
     ],
   },
   "2026-05-27": {
@@ -272,39 +267,6 @@ const specialTrainingDates = {
       ["tecnica-supino", "Técnica de supino", "3x8 leve", "aprendizado"],
       ["tecnica-remada", "Técnica de remada", "3x10 leve", "escápulas"],
       ["tecnica-agacho", "Técnica de agacho/leg", "3x10 leve", "controle"],
-      ["mobilidade-pos-exame", "Mobilidade", "8-12 min", "soltar"],
-    ],
-  },
-};
-
-const supportTrainingByWeekday = {
-  0: trainingPlanByWeekday[0],
-  2: {
-    title: "Suporte leve",
-    time: "20h",
-    detail: "cardio leve + mobilidade",
-    focus: "Aumentar gasto e praticar movimento sem atrapalhar os treinos com personal.",
-    preWindow: "18h30-19h30",
-    postWindow: "após 21h",
-    exercises: [
-      ["cardio-leve-terca", "Cardio zona 2", "25-35 min", "moderado"],
-      ["mobilidade-terca", "Mobilidade", "8-12 min", "quadril/ombro"],
-      ["abdomen-terca", "Abdômen leve", "2-3 séries", "sem falha"],
-    ],
-  },
-  4: trainingPlanByWeekday[4],
-  6: {
-    title: "Recuperação ativa",
-    time: "Livre",
-    detail: "cardio + pontos fracos leves",
-    focus: "Circular sangue, manter condicionamento e chegar bem no próximo treino com personal.",
-    preWindow: "",
-    postWindow: "",
-    exercises: [
-      ["cardio-sabado", "Cardio zona 2", "30-45 min", "constante"],
-      ["panturrilha-leve", "Panturrilha leve", "3x15-20", "opcional"],
-      ["abdomen-sabado-leve", "Abdômen", "2-3 séries", "opcional"],
-      ["mobilidade-sabado", "Mobilidade", "8-12 min", "leve"],
     ],
   },
 };
@@ -790,9 +752,7 @@ function trainingForDate(isoDate) {
   const weekday = fromISO(isoDate).getDay();
   const plan =
     specialTrainingDates[isoDate] ||
-    (personalTrainingWeekdays.has(weekday)
-      ? personalTrainingForDate(isoDate)
-      : supportTrainingByWeekday[weekday] || trainingPlanByWeekday[0]);
+    (heavyTrainingWeekdays.has(weekday) ? heavyTrainingForDate(isoDate) : trainingPlanByWeekday[0]);
 
   return {
     ...plan,
@@ -802,20 +762,24 @@ function trainingForDate(isoDate) {
   };
 }
 
-function personalTrainingForDate(isoDate) {
-  const index = personalTrainingIndex(isoDate);
-  const template = rotatingPersonalTemplates[index % rotatingPersonalTemplates.length];
+function heavyTrainingForDate(isoDate) {
+  const weekday = fromISO(isoDate).getDay();
+  const index = heavyTrainingIndex(isoDate);
+  const template = rotatingTrainingTemplates[index % rotatingTrainingTemplates.length];
+  const withPersonal = personalTrainingWeekdays.has(weekday);
+  const time = [2, 4].includes(weekday) ? "20h" : "10h";
+
   return {
     ...template,
-    time: "10h",
-    detail: "com personal",
-    focus: `Com personal: ${template.focus}`,
-    preWindow: "08h30-09h30",
-    postWindow: "após 11h",
+    time,
+    detail: withPersonal ? "com personal" : "pesado solo",
+    focus: `${withPersonal ? "Com personal" : "Solo pesado"}: ${template.focus}`,
+    preWindow: time === "20h" ? "18h30-19h30" : "08h30-09h30",
+    postWindow: time === "20h" ? "após 21h" : "após 11h",
   };
 }
 
-function personalTrainingIndex(isoDate) {
+function heavyTrainingIndex(isoDate) {
   const start = fromISO(state?.startDate || PLAN_START_DATE);
   const target = fromISO(isoDate);
   let count = 0;
@@ -823,7 +787,7 @@ function personalTrainingIndex(isoDate) {
 
   while (cursor <= target) {
     const cursorIso = toISO(cursor);
-    if (personalTrainingWeekdays.has(cursor.getDay()) && !specialTrainingDates[cursorIso]) count += 1;
+    if (heavyTrainingWeekdays.has(cursor.getDay()) && !specialTrainingDates[cursorIso]) count += 1;
     cursor.setDate(cursor.getDate() + 1);
   }
 
@@ -929,7 +893,7 @@ function renderTrainingPanel(entry, selectedDate) {
 
   const exerciseRows = training.exercises.length
     ? training.exercises.map((exercise) => exerciseRow(exercise, trainingEntry)).join("")
-    : `<div class="callout quiet training-rest">Caminhada leve, mobilidade e sono. Hoje o treino é chegar melhor amanhã.</div>`;
+    : `<div class="callout quiet training-rest">Descanso, caminhada leve se quiser e sono. Hoje o treino é chegar melhor amanhã.</div>`;
 
   els.trainingPlan.innerHTML = `
     <div class="training-brief">
