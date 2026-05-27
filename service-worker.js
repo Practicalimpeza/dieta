@@ -1,4 +1,4 @@
-const CACHE_NAME = "plano-45-dias-v23";
+const CACHE_NAME = "plano-45-dias-v25";
 const APP_ASSETS = [
   "./",
   "index.html",

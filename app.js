@@ -605,6 +605,9 @@ function ensureTrainingEntry(entry) {
   if (!entry.training.done) entry.training.done = {};
   if (!entry.training.load) entry.training.load = {};
   if (!entry.training.reps) entry.training.reps = {};
+  if (!entry.training.cardioTime) entry.training.cardioTime = {};
+  if (!entry.training.cardioSpeed) entry.training.cardioSpeed = {};
+  if (!entry.training.cardioIncline) entry.training.cardioIncline = {};
   if (entry.training.duration === undefined) entry.training.duration = "";
   if (entry.training.rpe === undefined) entry.training.rpe = "";
   if (entry.training.pump === undefined) entry.training.pump = "";
@@ -919,49 +922,19 @@ function renderTrainingPanel(entry, selectedDate) {
       </div>
     </div>
     <div class="exercise-list">${exerciseRows}</div>
-    <div class="training-log-grid">
-      <label>
-        <span>Duração</span>
-        <input data-training-field="duration" type="number" min="0" step="1" inputmode="numeric" placeholder="min" value="${escapeHTML(trainingEntry.duration)}" />
-      </label>
-      <label>
-        <span>RPE</span>
-        <select data-training-field="rpe">
-          <option value="">-</option>
-          ${[6, 7, 8, 9, 10]
-            .map((value) => `<option value="${value}" ${String(trainingEntry.rpe) === String(value) ? "selected" : ""}>${value}</option>`)
-            .join("")}
-        </select>
-      </label>
-      <label>
-        <span>Pump</span>
-        <select data-training-field="pump">
-          <option value="">-</option>
-          ${[1, 2, 3, 4, 5]
-            .map((value) => `<option value="${value}" ${String(trainingEntry.pump) === String(value) ? "selected" : ""}>${value}</option>`)
-            .join("")}
-        </select>
-      </label>
-      <label>
-        <span>Força</span>
-        <select data-training-field="strength">
-          <option value="">-</option>
-          ${["subiu", "igual", "caiu"]
-            .map((value) => `<option value="${value}" ${trainingEntry.strength === value ? "selected" : ""}>${value}</option>`)
-            .join("")}
-        </select>
-      </label>
-    </div>
     <label class="note-field training-note">
-      <span>Notas do treino</span>
-      <textarea data-training-field="notes" rows="3" placeholder="Carga boa, dor, pump, pressão, algo fora do normal">${escapeHTML(trainingEntry.notes)}</textarea>
+      <span>Observação opcional</span>
+      <textarea data-training-field="notes" rows="3" placeholder="Ex: treino médio, dor, exercício trocado, caminhada 10 min a 6 km/h">${escapeHTML(trainingEntry.notes)}</textarea>
     </label>
   `;
 }
 
 function exerciseRow(exercise, trainingEntry) {
+  const isCardio = exerciseIsCardio(exercise);
+  const hasLoadReps = exerciseHasLoadReps(exercise);
+
   return `
-    <div class="exercise-row">
+    <div class="exercise-row ${isCardio ? "exercise-row-cardio" : hasLoadReps ? "" : "exercise-row-simple"}">
       <label class="exercise-check">
         <input data-training-done="${exercise.id}" type="checkbox" ${trainingEntry.done[exercise.id] ? "checked" : ""} />
         <span>
@@ -969,16 +942,49 @@ function exerciseRow(exercise, trainingEntry) {
           <span class="check-detail">${exercise.target} · ${exercise.cue}</span>
         </span>
       </label>
-      <label class="exercise-input">
-        <span>Carga</span>
-        <input data-training-load="${exercise.id}" type="text" inputmode="decimal" placeholder="kg" value="${escapeHTML(trainingEntry.load[exercise.id])}" />
-      </label>
-      <label class="exercise-input">
-        <span>Reps</span>
-        <input data-training-reps="${exercise.id}" type="text" inputmode="numeric" placeholder="última" value="${escapeHTML(trainingEntry.reps[exercise.id])}" />
-      </label>
+      ${
+        hasLoadReps
+          ? `
+            <label class="exercise-input">
+              <span>Carga opc.</span>
+              <input data-training-load="${exercise.id}" type="text" inputmode="decimal" placeholder="kg" value="${escapeHTML(trainingEntry.load[exercise.id])}" />
+            </label>
+            <label class="exercise-input">
+              <span>Reps opc.</span>
+              <input data-training-reps="${exercise.id}" type="text" inputmode="numeric" placeholder="última" value="${escapeHTML(trainingEntry.reps[exercise.id])}" />
+            </label>
+          `
+          : ""
+      }
+      ${
+        isCardio
+          ? `
+            <label class="exercise-input">
+              <span>Tempo</span>
+              <input data-training-cardio-time="${exercise.id}" type="text" inputmode="decimal" placeholder="min" value="${escapeHTML(trainingEntry.cardioTime[exercise.id])}" />
+            </label>
+            <label class="exercise-input">
+              <span>Vel.</span>
+              <input data-training-cardio-speed="${exercise.id}" type="text" inputmode="decimal" placeholder="km/h" value="${escapeHTML(trainingEntry.cardioSpeed[exercise.id])}" />
+            </label>
+            <label class="exercise-input">
+              <span>Incl.</span>
+              <input data-training-cardio-incline="${exercise.id}" type="text" inputmode="decimal" placeholder="%" value="${escapeHTML(trainingEntry.cardioIncline[exercise.id])}" />
+            </label>
+          `
+          : ""
+      }
     </div>
   `;
+}
+
+function exerciseIsCardio(exercise) {
+  const text = `${exercise.id} ${exercise.name}`.toLowerCase();
+  return ["caminhada", "esteira", "cardio", "zona 2"].some((term) => text.includes(term));
+}
+
+function exerciseHasLoadReps(exercise) {
+  return !exerciseIsCardio(exercise);
 }
 
 function trainingCompletion(training, trainingEntry) {
@@ -1243,6 +1249,9 @@ function trainingHasData(training) {
     Object.values(training.done || {}).some(Boolean) ||
       Object.values(training.load || {}).some(Boolean) ||
       Object.values(training.reps || {}).some(Boolean) ||
+      Object.values(training.cardioTime || {}).some(Boolean) ||
+      Object.values(training.cardioSpeed || {}).some(Boolean) ||
+      Object.values(training.cardioIncline || {}).some(Boolean) ||
       training.duration ||
       training.rpe ||
       training.pump ||
@@ -1424,6 +1433,18 @@ function updateTrainingControl(target) {
     trainingEntry.reps[target.dataset.trainingReps] = target.value;
   }
 
+  if (target.matches("[data-training-cardio-time]")) {
+    trainingEntry.cardioTime[target.dataset.trainingCardioTime] = target.value;
+  }
+
+  if (target.matches("[data-training-cardio-speed]")) {
+    trainingEntry.cardioSpeed[target.dataset.trainingCardioSpeed] = target.value;
+  }
+
+  if (target.matches("[data-training-cardio-incline]")) {
+    trainingEntry.cardioIncline[target.dataset.trainingCardioIncline] = target.value;
+  }
+
   if (target.matches("[data-training-field]")) {
     trainingEntry[target.dataset.trainingField] = target.value;
   }
@@ -1487,7 +1508,11 @@ document.addEventListener("change", (event) => {
 
 document.addEventListener("input", (event) => {
   const target = event.target;
-  if (target.matches("[data-training-load], [data-training-reps], [data-training-field]")) {
+  if (
+    target.matches(
+      "[data-training-load], [data-training-reps], [data-training-cardio-time], [data-training-cardio-speed], [data-training-cardio-incline], [data-training-field]",
+    )
+  ) {
     updateTrainingControl(target);
     renderWeeklyReview();
     renderSummary();

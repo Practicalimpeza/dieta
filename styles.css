@@ -732,6 +732,14 @@ h3 {
     box-shadow 0.16s ease;
 }
 
+.exercise-row-simple {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.exercise-row-cardio {
+  grid-template-columns: minmax(0, 1fr) 78px 78px 76px;
+}
+
 .exercise-check {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
