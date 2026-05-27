@@ -511,7 +511,7 @@ body:not([data-active-tab="today"]) .topbar {
 .workspace[data-active-tab="review"] .timeline-panel,
 .workspace[data-active-tab="review"] .weekly-panel,
 .workspace[data-active-tab="review"] .progress-panel,
-.workspace[data-active-tab="review"] .notes-panel {
+.workspace[data-active-tab="review"] .report-panel {
   grid-column: 1 / -1;
 }
 
@@ -553,8 +553,7 @@ body:not([data-active-tab="today"]) .topbar {
 .training-panel,
 .weekly-panel,
 .timeline-panel,
-.progress-panel,
-.notes-panel {
+.progress-panel {
   grid-column: 1;
 }
 
@@ -614,18 +613,27 @@ body:not([data-active-tab="today"]) .topbar {
   accent-color: var(--green);
 }
 
+.check-title-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .check-title {
-  display: block;
+  display: inline;
+  min-width: 0;
   font-weight: 900;
   line-height: 1.25;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 .check-time {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   min-height: 22px;
-  margin-top: 6px;
   padding: 0 7px;
   border-radius: 7px;
   background: var(--blue-soft);
@@ -770,6 +778,8 @@ body:not([data-active-tab="today"]) .topbar {
 }
 
 .exercise-input input,
+.exercise-edit-row input,
+.exercise-add-row input,
 .training-log-grid input,
 .training-log-grid select {
   width: 100%;
@@ -786,10 +796,58 @@ body:not([data-active-tab="today"]) .topbar {
 .form-grid select:focus,
 .note-field textarea:focus,
 .exercise-input input:focus,
+.exercise-edit-row input:focus,
+.exercise-add-row input:focus,
 .training-log-grid input:focus,
 .training-log-grid select:focus {
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(35, 120, 93, 0.13);
+}
+
+.exercise-editor {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.exercise-editor summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.exercise-editor-body {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.exercise-edit-row,
+.exercise-add-row {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+}
+
+.exercise-edit-row {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) auto;
+}
+
+label.exercise-edit-row {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+}
+
+.exercise-add-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.exercise-edit-row > span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .training-log-grid {
@@ -1017,20 +1075,50 @@ body:not([data-active-tab="today"]) .topbar {
   background: #fbfcfb;
 }
 
-.principle-list {
+.report-controls {
   display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(100px, 0.6fr) minmax(100px, 0.6fr);
   gap: 10px;
+  margin-bottom: 12px;
 }
 
-.principle-list p {
-  margin: 0;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-  line-height: 1.5;
+.report-controls label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 
-.principle-list p:last-child {
-  border-bottom: 0;
+.report-controls input,
+.report-controls select,
+.report-output {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.report-controls input,
+.report-controls select {
+  min-height: 42px;
+  padding: 9px 10px;
+}
+
+.report-controls input:disabled {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.report-output {
+  min-height: 420px;
+  padding: 13px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  white-space: pre;
 }
 
 @media (max-width: 1100px) {
@@ -1051,7 +1139,7 @@ body:not([data-active-tab="today"]) .topbar {
   .weekly-panel,
   .timeline-panel,
   .progress-panel,
-  .notes-panel {
+  .report-panel {
     grid-column: auto;
   }
 
@@ -1192,11 +1280,18 @@ body:not([data-active-tab="today"]) .topbar {
   .form-grid,
   .training-brief,
   .training-log-grid,
+  .report-controls,
   .signal-grid {
     grid-template-columns: 1fr;
   }
 
   .exercise-row {
+    grid-template-columns: 1fr;
+  }
+
+  .exercise-edit-row,
+  label.exercise-edit-row,
+  .exercise-add-row {
     grid-template-columns: 1fr;
   }
 

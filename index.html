@@ -231,21 +231,37 @@
           <canvas id="progressChart" width="900" height="320" aria-label="Gráfico de evolução" role="img"></canvas>
         </section>
 
-        <section class="panel notes-panel" data-tab-panel="review" role="tabpanel" aria-labelledby="rulesHeading">
+        <section class="panel report-panel" data-tab-panel="review" role="tabpanel" aria-labelledby="reportHeading">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Princípios</p>
-              <h2 id="rulesHeading">O que sustenta o visual</h2>
+              <p class="eyebrow">Exportar</p>
+              <h2 id="reportHeading">Relatório para IA</h2>
             </div>
+            <button id="copyReportBtn" class="icon-button strong" type="button">Copiar</button>
           </div>
-          <div class="principle-list">
-            <p><strong>Dieta:</strong> base simples e restrita: arroz, batata, carne/frango/ovos e whey; fibra só como opcional separado.</p>
-            <p><strong>Treino:</strong> progressão com 1-2 repetições na reserva nos básicos e falha só em isoladores.</p>
-            <p><strong>Cardio:</strong> consistente para ajudar HDL, pressão e condicionamento.</p>
-            <p><strong>Saúde:</strong> pressão, sono, água e sinais fortes mandam mais que ego de carga.</p>
-            <p><strong>Cálcio:</strong> sem suplemento extra até repetir cálcio/albumina ou cálcio ionizado.</p>
+          <div class="report-controls">
+            <label>
+              <span>Período</span>
+              <select id="reportScope">
+                <option value="phase">Fase atual</option>
+                <option value="week">Semana do plano</option>
+                <option value="day">Dia atual</option>
+                <option value="start">Desde o início</option>
+                <option value="manual">Intervalo manual</option>
+              </select>
+            </label>
+            <label>
+              <span>Dia inicial</span>
+              <input id="reportStartDay" type="number" min="1" max="45" inputmode="numeric" />
+            </label>
+            <label>
+              <span>Dia final</span>
+              <input id="reportEndDay" type="number" min="1" max="45" inputmode="numeric" />
+            </label>
           </div>
+          <textarea id="analysisReport" class="report-output" readonly></textarea>
         </section>
+
       </main>
     </div>
   </body>

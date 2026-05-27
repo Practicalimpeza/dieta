@@ -311,6 +311,11 @@ const els = {
   summaryLabel: document.querySelector("#summaryLabel"),
   chartLabel: document.querySelector("#chartLabel"),
   progressChart: document.querySelector("#progressChart"),
+  reportScope: document.querySelector("#reportScope"),
+  reportStartDay: document.querySelector("#reportStartDay"),
+  reportEndDay: document.querySelector("#reportEndDay"),
+  analysisReport: document.querySelector("#analysisReport"),
+  copyReportBtn: document.querySelector("#copyReportBtn"),
   prevDayBtn: document.querySelector("#prevDayBtn"),
   todayBtn: document.querySelector("#todayBtn"),
   nextDayBtn: document.querySelector("#nextDayBtn"),
@@ -609,6 +614,8 @@ function ensureTrainingEntry(entry) {
   if (!entry.training.cardioTime) entry.training.cardioTime = {};
   if (!entry.training.cardioSpeed) entry.training.cardioSpeed = {};
   if (!entry.training.cardioIncline) entry.training.cardioIncline = {};
+  if (!entry.training.nameOverrides) entry.training.nameOverrides = {};
+  if (!Array.isArray(entry.training.customExercises)) entry.training.customExercises = [];
   if (entry.training.duration === undefined) entry.training.duration = "";
   if (entry.training.rpe === undefined) entry.training.rpe = "";
   if (entry.training.pump === undefined) entry.training.pump = "";
@@ -681,6 +688,7 @@ function render() {
   renderTimeline();
   renderWeeklyReview();
   renderSummary();
+  if (state.activeTab === "review") renderAnalysisReport();
   drawChart();
   renderActiveTab();
 
@@ -710,6 +718,7 @@ function setActiveTab(tab) {
   state.activeTab = validTab(tab);
   saveState({ cloud: false });
   renderActiveTab();
+  if (state.activeTab === "review") renderAnalysisReport();
 }
 
 function phaseTitleForDay(phase, day) {
@@ -905,13 +914,14 @@ function renderTrainingPanel(entry, selectedDate) {
   const training = trainingForDate(selectedDate);
   const trainingEntry = ensureTrainingEntry(entry);
   const completion = trainingCompletion(training, trainingEntry);
+  const exercises = trainingExercisesForRender(training, trainingEntry);
 
-  els.trainingScore.textContent = training.hasTraining
+  els.trainingScore.textContent = exercises.length
     ? `${completion.done}/${completion.total} exercícios`
     : "recuperação";
 
-  const exerciseRows = training.exercises.length
-    ? training.exercises.map((exercise) => exerciseRow(exercise, trainingEntry)).join("")
+  const exerciseRows = exercises.length
+    ? exercises.map((exercise) => exerciseRow(exercise, trainingEntry)).join("")
     : `<div class="callout quiet training-rest">Descanso, caminhada leve se quiser e sono. Hoje o treino é chegar melhor amanhã.</div>`;
 
   els.trainingPlan.innerHTML = `
@@ -933,10 +943,69 @@ function renderTrainingPanel(entry, selectedDate) {
       </div>
     </div>
     <div class="exercise-list">${exerciseRows}</div>
+    ${exerciseEditor(training, trainingEntry)}
     <label class="note-field training-note">
       <span>Notas</span>
       <textarea data-training-field="notes" rows="3">${escapeHTML(trainingEntry.notes)}</textarea>
     </label>
+  `;
+}
+
+function trainingExercisesForRender(training, trainingEntry) {
+  const planned = training.exercises.map((exercise) => ({
+    ...exercise,
+    originalName: exercise.name,
+    name: trainingEntry.nameOverrides[exercise.id] || exercise.name,
+    custom: false,
+  }));
+  const custom = trainingEntry.customExercises
+    .filter((exercise) => exercise?.id && exercise?.name)
+    .map((exercise) => ({
+      id: exercise.id,
+      name: exercise.name,
+      originalName: "",
+      target: "",
+      cue: "extra",
+      custom: true,
+    }));
+  return [...planned, ...custom];
+}
+
+function exerciseEditor(training, trainingEntry) {
+  const plannedRows = training.exercises
+    .map(
+      (exercise) => `
+        <label class="exercise-edit-row">
+          <span>${exercise.name}</span>
+          <input data-training-name="${exercise.id}" type="text" placeholder="Novo nome" value="${escapeHTML(trainingEntry.nameOverrides[exercise.id] || "")}" />
+        </label>
+      `,
+    )
+    .join("");
+  const customRows = trainingEntry.customExercises
+    .map(
+      (exercise) => `
+        <div class="exercise-edit-row custom-edit-row">
+          <span>Extra</span>
+          <input data-custom-exercise-name="${exercise.id}" type="text" value="${escapeHTML(exercise.name)}" />
+          <button class="icon-button" type="button" data-custom-exercise-remove="${exercise.id}">Remover</button>
+        </div>
+      `,
+    )
+    .join("");
+
+  return `
+    <details class="exercise-editor">
+      <summary>Editar exercícios</summary>
+      <div class="exercise-editor-body">
+        ${plannedRows || `<p class="muted">Sem exercício planejado. Adicione um extra abaixo.</p>`}
+        ${customRows}
+        <div class="exercise-add-row">
+          <input data-custom-exercise-new type="text" placeholder="Novo exercício" />
+          <button class="icon-button strong" type="button" data-custom-exercise-add>Adicionar</button>
+        </div>
+      </div>
+    </details>
   `;
 }
 
@@ -998,9 +1067,10 @@ function exerciseHasLoadReps(exercise) {
 }
 
 function trainingCompletion(training, trainingEntry) {
-  if (!training.hasTraining) return { done: 0, total: 0, percent: null };
-  const done = training.exercises.filter((exercise) => trainingEntry.done[exercise.id]).length;
-  const total = training.exercises.length;
+  const exercises = trainingExercisesForRender(training, trainingEntry);
+  if (!exercises.length) return { done: 0, total: 0, percent: null };
+  const done = exercises.filter((exercise) => trainingEntry.done[exercise.id]).length;
+  const total = exercises.length;
   return {
     done,
     total,
@@ -1013,8 +1083,10 @@ function checkRow(id, title, detail, checked, meta = "") {
     <label class="check-row">
       <input data-check="${id}" type="checkbox" ${checked ? "checked" : ""} />
       <span>
-        <span class="check-title">${title}</span>
-        ${meta ? `<span class="check-time">${meta}</span>` : ""}
+        <span class="check-title-line">
+          <span class="check-title">${title}</span>
+          ${meta ? `<span class="check-time">${meta}</span>` : ""}
+        </span>
         <span class="check-detail">${detail}</span>
       </span>
     </label>
@@ -1263,6 +1335,8 @@ function trainingHasData(training) {
       Object.values(training.cardioTime || {}).some(Boolean) ||
       Object.values(training.cardioSpeed || {}).some(Boolean) ||
       Object.values(training.cardioIncline || {}).some(Boolean) ||
+      Object.values(training.nameOverrides || {}).some(Boolean) ||
+      (training.customExercises || []).some((exercise) => exercise?.name) ||
       training.duration ||
       training.rpe ||
       training.pump ||
@@ -1311,6 +1385,258 @@ function renderSummary() {
     : "sem registros";
 
   if (!entries.length) return;
+}
+
+function renderAnalysisReport() {
+  if (!els.analysisReport) return;
+  const range = currentReportRange();
+  const manual = (els.reportScope?.value || "phase") === "manual";
+
+  if (els.reportStartDay) {
+    els.reportStartDay.value = range.start;
+    els.reportStartDay.disabled = !manual;
+  }
+  if (els.reportEndDay) {
+    els.reportEndDay.value = range.end;
+    els.reportEndDay.disabled = !manual;
+  }
+
+  els.analysisReport.value = buildAnalysisReport(range);
+}
+
+function currentReportRange() {
+  const day = state.selectedDay;
+  const scope = els.reportScope?.value || "phase";
+
+  if (scope === "day") return { start: day, end: day, label: `Dia ${day}` };
+
+  if (scope === "week") {
+    const start = Math.floor((day - 1) / 7) * 7 + 1;
+    const end = Math.min(TOTAL_DAYS, start + 6);
+    return { start, end, label: `Semana do plano ${start}-${end}` };
+  }
+
+  if (scope === "start") return { start: 1, end: day, label: `Desde o início até o dia ${day}` };
+
+  if (scope === "manual") {
+    let start = clampDay(els.reportStartDay?.value || day);
+    let end = clampDay(els.reportEndDay?.value || start);
+    if (start > end) [start, end] = [end, start];
+    return { start, end, label: `Intervalo manual ${start}-${end}` };
+  }
+
+  const phase = currentPhase(day);
+  return { start: phase.start, end: phase.end, label: `${phase.title} | dias ${phase.start}-${phase.end}` };
+}
+
+function buildAnalysisReport(range) {
+  const days = Array.from({ length: range.end - range.start + 1 }, (_, index) => range.start + index);
+  const rawDays = days.map(reportDayPayload);
+  const lines = [
+    "RELATÓRIO DO PLANO 45 DIAS PARA ANÁLISE POR IA",
+    "",
+    "CONTEXTO",
+    `- Período: ${range.label}`,
+    `- Data inicial do plano: ${state.startDate}`,
+    `- Dia selecionado no app: ${state.selectedDay}`,
+    `- Gerado em: ${new Date().toLocaleString("pt-BR")}`,
+    "- Observação: pesos de arroz/batata são cozidos quando o plano indicar arroz/batata.",
+    "- Objetivo do relatório: analisar dieta, treino, evolução, sinais e aderência sem perder nenhum dado preenchido.",
+    "",
+    ...days.flatMap((day) => dayReportLines(day)),
+    "DADOS BRUTOS DO PERÍODO",
+    JSON.stringify(
+      {
+        report: range,
+        stateMeta: {
+          startDate: state.startDate,
+          selectedDay: state.selectedDay,
+          activeTab: state.activeTab,
+          updatedAt: state.updatedAt || "",
+        },
+        days: rawDays,
+      },
+      null,
+      2,
+    ),
+  ];
+
+  return lines.join("\n");
+}
+
+function reportDayPayload(day) {
+  const selectedDate = addDays(state.startDate, day - 1);
+  const phase = currentPhase(day);
+  const training = trainingForDate(selectedDate);
+  const entry = state.entries[String(day)] || {};
+  return {
+    day,
+    date: selectedDate,
+    formattedDate: formatDate(selectedDate),
+    phase: {
+      id: phase.id,
+      title: phase.title,
+      heading: phaseTitleForDay(phase, day),
+      goal: phase.goal,
+      macros: phase.macros,
+      totals: phase.totals,
+    },
+    adherence: adherenceForDay(day),
+    plannedMeals: mealsForDate(phase, selectedDate),
+    plannedHabits: habitChecksForDate(selectedDate),
+    plannedTraining: training,
+    entry,
+  };
+}
+
+function dayReportLines(day) {
+  const payload = reportDayPayload(day);
+  const entry = normalizedEntryForReport(payload.entry);
+  const waterLiters = reportWaterLiters(entry);
+  const completion = reportTrainingCompletion(payload.plannedTraining, entry.training);
+
+  return [
+    `DIA ${payload.day} | ${payload.formattedDate}`,
+    `- Fase: ${payload.phase.title} | ${payload.phase.heading}`,
+    `- Objetivo da fase: ${payload.phase.goal}`,
+    `- Aderência calculada: ${payload.adherence}%`,
+    `- Atualizado em: ${valueOrDash(entry.updatedAt)}`,
+    "",
+    "Metas do plano",
+    `- Kcal: ${payload.phase.macros.kcal}`,
+    `- Proteína: ${payload.phase.macros.proteina}`,
+    `- Carbo: ${payload.phase.macros.carbo}`,
+    `- Gordura: ${payload.phase.macros.gordura}`,
+    `- Whey: ${payload.phase.totals.whey}`,
+    `- Fibra: ${payload.phase.totals.fibra}`,
+    `- Cardio: ${payload.phase.totals.cardio}`,
+    `- Água: ${payload.phase.totals.agua}`,
+    `- Sono: ${payload.phase.totals.sono}`,
+    `- Cálcio: ${payload.phase.totals.calcio}`,
+    "",
+    "Refeições planejadas e marcação",
+    ...payload.plannedMeals.map(
+      (meal) =>
+        `- ${checkedLabel(entry.checks[meal.id])} ${meal.time || "-"} | ${meal.title}: ${meal.detail}`,
+    ),
+    "",
+    "Hábitos planejados e marcação",
+    ...payload.plannedHabits.map(
+      ([id, title, detail]) => `- ${checkedLabel(entry.checks[id])} ${title}: ${detail}`,
+    ),
+    `- ${waterUnits(entry) >= WATER_MIN_UNITS ? "[x]" : "[ ]"} Água mínima: ${waterLiters} L registrados | unidades de 500 ml: ${waterUnits(entry)}`,
+    "",
+    "Dados preenchidos",
+    `- Peso: ${valueOrDash(entry.weight)} kg`,
+    `- Cintura: ${valueOrDash(entry.waist)} cm`,
+    `- Sono: ${valueOrDash(entry.sleep)} h`,
+    `- Cardio registrado: ${valueOrDash(entry.cardioMin)} min`,
+    `- Água digitada: ${valueOrDash(entry.water)} L`,
+    `- Água calculada: ${waterLiters} L`,
+    `- Pressão: ${valueOrDash(entry.pressure)}`,
+    `- BPM repouso: ${valueOrDash(entry.restingPulse)}`,
+    `- Energia: ${valueOrDash(entry.energy)}`,
+    `- Carbo alto/refeed: ${entry.refeed ? "sim" : "não"}`,
+    `- Observações gerais: ${valueOrDash(entry.notes)}`,
+    "",
+    "Sinais de excesso",
+    ...alertChecks.map(([id, label]) => `- ${label}: ${entry.alerts[id] ? "sim" : "não"}`),
+    "",
+    "Treino planejado e execução",
+    `- Título: ${payload.plannedTraining.title}`,
+    `- Horário: ${payload.plannedTraining.value}`,
+    `- Detalhe: ${payload.plannedTraining.detail || "-"}`,
+    `- Foco: ${payload.plannedTraining.focus || "-"}`,
+    `- Janela pré: ${payload.plannedTraining.preWindow || "-"}`,
+    `- Janela pós: ${payload.plannedTraining.postWindow || "-"}`,
+    `- Conclusão: ${completion.done}/${completion.total}`,
+    `- Duração registrada: ${valueOrDash(entry.training.duration)} min`,
+    `- RPE registrado: ${valueOrDash(entry.training.rpe)}`,
+    `- Pump registrado: ${valueOrDash(entry.training.pump)}`,
+    `- Força registrada: ${valueOrDash(entry.training.strength)}`,
+    `- Notas do treino: ${valueOrDash(entry.training.notes)}`,
+    ...trainingExerciseReportLines(payload.plannedTraining, entry.training),
+    "",
+  ];
+}
+
+function normalizedEntryForReport(entry = {}) {
+  const training = entry.training || {};
+  return {
+    checks: entry.checks || {},
+    alerts: entry.alerts || {},
+    weight: entry.weight || "",
+    waist: entry.waist || "",
+    sleep: entry.sleep || "",
+    cardioMin: entry.cardioMin || "",
+    water: entry.water || "",
+    waterUnits: entry.waterUnits || 0,
+    pressure: entry.pressure || "",
+    restingPulse: entry.restingPulse || "",
+    energy: entry.energy || "",
+    notes: entry.notes || "",
+    refeed: Boolean(entry.refeed),
+    updatedAt: entry.updatedAt || "",
+    training: {
+      done: training.done || {},
+      load: training.load || {},
+      reps: training.reps || {},
+      cardioTime: training.cardioTime || {},
+      cardioSpeed: training.cardioSpeed || {},
+      cardioIncline: training.cardioIncline || {},
+      nameOverrides: training.nameOverrides || {},
+      customExercises: Array.isArray(training.customExercises) ? training.customExercises : [],
+      duration: training.duration || "",
+      rpe: training.rpe || "",
+      pump: training.pump || "",
+      strength: training.strength || "",
+      notes: training.notes || "",
+    },
+  };
+}
+
+function trainingExerciseReportLines(training, trainingEntry) {
+  const exercises = trainingExercisesForRender(training, trainingEntry);
+  if (!exercises.length) return ["- Sem musculação planejada."];
+  return exercises.map((exercise) => {
+    const done = trainingEntry.done[exercise.id] ? "sim" : "não";
+    const original =
+      exercise.originalName && exercise.originalName !== exercise.name
+        ? ` | original=${exercise.originalName}`
+        : "";
+    const type = exercise.custom ? " | tipo=extra" : "";
+    return `- ${exercise.name}: feito=${done}${type}${original} | meta=${valueOrDash(exercise.target)} | dica=${valueOrDash(exercise.cue)} | carga=${valueOrDash(
+      trainingEntry.load[exercise.id],
+    )} | reps=${valueOrDash(trainingEntry.reps[exercise.id])} | tempo=${valueOrDash(
+      trainingEntry.cardioTime[exercise.id],
+    )} | velocidade=${valueOrDash(trainingEntry.cardioSpeed[exercise.id])} | inclinação=${valueOrDash(
+      trainingEntry.cardioIncline[exercise.id],
+    )}`;
+  });
+}
+
+function reportTrainingCompletion(training, trainingEntry) {
+  const exercises = trainingExercisesForRender(training, trainingEntry);
+  if (!exercises.length) return { done: 0, total: 0 };
+  return {
+    done: exercises.filter((exercise) => trainingEntry.done[exercise.id]).length,
+    total: exercises.length,
+  };
+}
+
+function reportWaterLiters(entry) {
+  const units = waterUnits(entry);
+  if (units) return (units * WATER_STEP_LITERS).toFixed(1);
+  const liters = Number(entry.water);
+  return Number.isFinite(liters) && liters > 0 ? liters.toFixed(1) : "0.0";
+}
+
+function checkedLabel(value) {
+  return value ? "[x]" : "[ ]";
+}
+
+function valueOrDash(value) {
+  return value === undefined || value === null || value === "" ? "-" : String(value);
 }
 
 function progressPoints() {
@@ -1456,6 +1782,20 @@ function updateTrainingControl(target) {
     trainingEntry.cardioIncline[target.dataset.trainingCardioIncline] = target.value;
   }
 
+  if (target.matches("[data-training-name]")) {
+    const exerciseId = target.dataset.trainingName;
+    const value = target.value.trim();
+    if (value) trainingEntry.nameOverrides[exerciseId] = value;
+    else delete trainingEntry.nameOverrides[exerciseId];
+  }
+
+  if (target.matches("[data-custom-exercise-name]")) {
+    const exercise = trainingEntry.customExercises.find(
+      (item) => item.id === target.dataset.customExerciseName,
+    );
+    if (exercise) exercise.name = target.value.trim();
+  }
+
   if (target.matches("[data-training-field]")) {
     trainingEntry[target.dataset.trainingField] = target.value;
   }
@@ -1476,7 +1816,7 @@ document.addEventListener("change", (event) => {
     return;
   }
 
-  if (target.matches("[data-training-done], [data-training-field]")) {
+  if (target.matches("[data-training-done], [data-training-field], [data-training-name], [data-custom-exercise-name]")) {
     updateTrainingControl(target);
     render();
     return;
@@ -1536,8 +1876,67 @@ document.addEventListener("input", (event) => {
   drawChart();
 });
 
+document.addEventListener("click", (event) => {
+  const addButton = event.target.closest?.("[data-custom-exercise-add]");
+  if (addButton) {
+    const container = addButton.closest(".exercise-add-row");
+    const input = container?.querySelector("[data-custom-exercise-new]");
+    const name = input?.value.trim();
+    if (!name) return;
+
+    const entry = getEntry();
+    const trainingEntry = ensureTrainingEntry(entry);
+    const id = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    trainingEntry.customExercises.push({ id, name });
+    touchEntry(entry);
+    saveState();
+    render();
+    return;
+  }
+
+  const removeButton = event.target.closest?.("[data-custom-exercise-remove]");
+  if (!removeButton) return;
+
+  const entry = getEntry();
+  const trainingEntry = ensureTrainingEntry(entry);
+  const exerciseId = removeButton.dataset.customExerciseRemove;
+  trainingEntry.customExercises = trainingEntry.customExercises.filter((exercise) => exercise.id !== exerciseId);
+  delete trainingEntry.done[exerciseId];
+  delete trainingEntry.load[exerciseId];
+  delete trainingEntry.reps[exerciseId];
+  delete trainingEntry.cardioTime[exerciseId];
+  delete trainingEntry.cardioSpeed[exerciseId];
+  delete trainingEntry.cardioIncline[exerciseId];
+  touchEntry(entry);
+  saveState();
+  render();
+});
+
 els.tabButtons.forEach((button) => {
   button.addEventListener("click", () => setActiveTab(button.dataset.tab));
+});
+
+if (els.reportScope) {
+  els.reportScope.addEventListener("change", renderAnalysisReport);
+}
+
+[els.reportStartDay, els.reportEndDay].forEach((input) => {
+  input?.addEventListener("input", renderAnalysisReport);
+});
+
+els.copyReportBtn?.addEventListener("click", async () => {
+  if (!els.analysisReport) return;
+  try {
+    await navigator.clipboard.writeText(els.analysisReport.value);
+  } catch (error) {
+    els.analysisReport.select();
+    document.execCommand("copy");
+  }
+  const original = els.copyReportBtn.textContent;
+  els.copyReportBtn.textContent = "Copiado";
+  window.setTimeout(() => {
+    els.copyReportBtn.textContent = original;
+  }, 1200);
 });
 
 document.addEventListener("keydown", (event) => {
