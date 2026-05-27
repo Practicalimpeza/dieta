@@ -20,7 +20,7 @@ const phases = [
     start: 1,
     end: 15,
     title: "Fase 1",
-    goal: "Reduzir carbo e volume de comida sem matar treino, mantendo café sólido e 2 wheys.",
+    goal: "Base de definição com proteína alta, carbo moderado e rotina simples de refeições.",
     macros: {
       proteina: "175-185 g",
       carbo: "150-180 g",
@@ -53,7 +53,7 @@ const phases = [
     start: 16,
     end: 30,
     title: "Fase 2",
-    goal: "Apertar o déficit tirando carbo fora do treino, sem derrubar carga, libido ou sono.",
+    goal: "Déficit um pouco mais firme, com carbo concentrado perto do treino.",
     macros: {
       proteina: "175-185 g",
       carbo: "130-160 g",
@@ -86,7 +86,7 @@ const phases = [
     start: 31,
     end: 45,
     title: "Fase 3",
-    goal: "Finalizar mais seco, com carbo quase todo perto do treino e noite mais limpa.",
+    goal: "Fase final com carbo mais baixo, proteína estável e recuperação preservada.",
     macros: {
       proteina: "175-185 g",
       carbo: "110-140 g",
@@ -877,7 +877,7 @@ function mealScheduleForTraining(training) {
 
 function focusTextForDay(day, training) {
   if (!training.hasTraining) {
-    return "Dia sem musculação: mantenha 2 wheys, café sólido, psyllium e carbo menor fora do treino.";
+    return "Dia sem musculação: mantenha proteína, fibra, água e carbo mais baixo.";
   }
 
   if (training.value === "10h") {
@@ -885,10 +885,10 @@ function focusTextForDay(day, training) {
   }
 
   if (training.value === "20h") {
-    return "Treino às 20h: café sólido às 08h, almoço normal, pré às 18h30-19h30 e whey 2 no pós.";
+    return "Treino às 20h: mantenha o pré no fim da tarde e o pós logo após o treino.";
   }
 
-  return `${training.title}: mantenha 2 wheys, carbo perto do treino, água alta e psyllium longe das vitaminas/remédios.`;
+  return `${training.title}: mantenha proteína estável, carbo perto do treino, água alta e fibra longe das vitaminas/remédios.`;
 }
 
 function renderChecks(phase, entry, selectedDate) {
