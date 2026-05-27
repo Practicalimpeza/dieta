@@ -30,10 +30,10 @@ const phases = [
       agua: "4-5 L",
     },
     meals: [
-      ["Café sólido", "1 dose whey Integral Médica + 1 pão francês + 2 ovos"],
+      ["Café sólido", "1 dose whey + 1 pão francês + 2 ovos"],
       ["Almoço", "150 g frango/patinho/carne magra + 120 g arroz cozido + 10 g azeite"],
       ["Refeição treino", "150 g frango/patinho + 160 g arroz cozido"],
-      ["Whey 2", "1 dose whey Integral Médica + 100 g arroz cozido ou 150-200 g batata"],
+      ["Whey 2", "1 dose whey + 100 g arroz cozido ou 150-200 g batata"],
       ["Jantar/ceia", "150 g frango/carne/ovos; sem arroz, ou 80-100 g arroz se treino/fome pedir"],
     ],
     totals: {
@@ -41,7 +41,7 @@ const phases = [
       carbo: "150-180 g",
       gordura: "65-75 g",
       fibra: "10 g psyllium",
-      whey: "2 doses Integral Médica",
+      whey: "2 doses whey",
       cardio: "30-35 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
@@ -63,10 +63,10 @@ const phases = [
       agua: "4-5 L",
     },
     meals: [
-      ["Café sólido", "1 dose whey Integral Médica + 1 pão francês + 2 ovos"],
+      ["Café sólido", "1 dose whey + 1 pão francês + 2 ovos"],
       ["Almoço", "150 g frango/patinho/carne magra + 100 g arroz cozido + 10 g azeite"],
       ["Refeição treino", "150 g frango/patinho + 140 g arroz cozido"],
-      ["Whey 2", "1 dose whey Integral Médica + 80-100 g arroz cozido ou 150 g batata"],
+      ["Whey 2", "1 dose whey + 80-100 g arroz cozido ou 150 g batata"],
       ["Jantar/ceia", "150 g frango/carne/ovos; sem arroz, ou 80 g arroz se treino/fome pedir"],
     ],
     totals: {
@@ -74,7 +74,7 @@ const phases = [
       carbo: "130-160 g",
       gordura: "65-75 g",
       fibra: "10 g psyllium",
-      whey: "2 doses Integral Médica",
+      whey: "2 doses whey",
       cardio: "35-40 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
@@ -96,10 +96,10 @@ const phases = [
       agua: "4-5 L",
     },
     meals: [
-      ["Café sólido", "1 dose whey Integral Médica + 1 pão francês + 2 ovos"],
+      ["Café sólido", "1 dose whey + 1 pão francês + 2 ovos"],
       ["Almoço", "150 g frango/patinho/carne magra + 80-100 g arroz cozido + 10 g azeite"],
       ["Refeição treino", "150 g frango/patinho + 120 g arroz cozido"],
-      ["Whey 2", "1 dose whey Integral Médica + 0-80 g arroz cozido se treino pedir"],
+      ["Whey 2", "1 dose whey + 0-80 g arroz cozido se treino pedir"],
       ["Jantar/ceia", "150 g frango/carne/ovos, sem arroz"],
     ],
     totals: {
@@ -107,7 +107,7 @@ const phases = [
       carbo: "110-140 g",
       gordura: "70-80 g",
       fibra: "10 g psyllium",
-      whey: "2 doses Integral Médica",
+      whey: "2 doses whey",
       cardio: "40 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
@@ -870,7 +870,7 @@ function mealScheduleForTraining(training) {
       time: "16h30",
       detail: "150 g frango/patinho + 80-120 g arroz cozido, ou sem arroz se descanso total",
     },
-    { index: 3, title: "Whey 2", time: "19h00", detail: "1 dose whey Integral Médica" },
+    { index: 3, title: "Whey 2", time: "19h00", detail: "1 dose whey" },
     { index: 4, title: "Jantar/ceia", time: "21h30" },
   ];
 }
