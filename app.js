@@ -252,10 +252,13 @@ const specialTrainingDates = {
     preWindow: "",
     postWindow: "",
     exercises: [
-      ["desenvolvimento-moderado", "Desenvolvimento halter/máquina", "3x8-10", "moderado"],
-      ["elevacao-lateral-moderada", "Elevação lateral", "3x12-20", "controle"],
-      ["crucifixo-inverso-moderado", "Crucifixo inverso", "3x12-20", "posterior"],
-      ["caminhada-10min", "Caminhada leve", "10 min", "sem cansar"],
+      ["elevacao-lateral-moderada", "Elevação lateral", "feito", "controle"],
+      ["elevacao-frontal-moderada", "Elevação frontal", "feito", "ombro anterior"],
+      ["manguito-interno", "Manguito rotação interna", "feito", "controle"],
+      ["manguito-externo", "Manguito rotação externa", "feito", "controle"],
+      ["desenvolvimento-maquina-moderado", "Desenvolvimento máquina", "feito", "moderado"],
+      ["crucifixo-inverso-moderado", "Crucifixo invertido", "feito", "posterior"],
+      ["esteira-10min-6kmh", "Caminhada na esteira", "10 min", "6 km/h"],
     ],
   },
   "2026-05-27": {
