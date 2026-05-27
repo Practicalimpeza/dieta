@@ -939,7 +939,6 @@ function exerciseRow(exercise, trainingEntry) {
         <input data-training-done="${exercise.id}" type="checkbox" ${trainingEntry.done[exercise.id] ? "checked" : ""} />
         <span>
           <span class="check-title">${exercise.name}</span>
-          <span class="check-detail">${exercise.target} · ${exercise.cue}</span>
         </span>
       </label>
       ${
