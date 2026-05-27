@@ -934,8 +934,8 @@ function renderTrainingPanel(entry, selectedDate) {
     </div>
     <div class="exercise-list">${exerciseRows}</div>
     <label class="note-field training-note">
-      <span>Observação opcional</span>
-      <textarea data-training-field="notes" rows="3" placeholder="Ex: treino médio, dor, exercício trocado, caminhada 10 min a 6 km/h">${escapeHTML(trainingEntry.notes)}</textarea>
+      <span>Notas</span>
+      <textarea data-training-field="notes" rows="3">${escapeHTML(trainingEntry.notes)}</textarea>
     </label>
   `;
 }
