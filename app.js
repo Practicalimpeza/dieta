@@ -20,28 +20,28 @@ const phases = [
     start: 1,
     end: 15,
     title: "Fase 1",
-    goal: "Entrar em déficit leve, manter performance e controlar pressão, água e digestão.",
+    goal: "Reduzir carbo e volume de comida sem matar treino, mantendo café sólido e 2 wheys.",
     macros: {
-      proteina: "180-190 g",
-      carbo: "260 g",
-      gordura: "60-65 g",
-      kcal: "~2.450",
+      proteina: "175-185 g",
+      carbo: "150-180 g",
+      gordura: "65-75 g",
+      kcal: "~2.100-2.250",
       cardio: "30-35 min",
       agua: "4-5 L",
     },
     meals: [
-      ["Refeição 1", "1 dose whey + 250 g batata ou 200 g arroz"],
-      ["Refeição 2", "200 g carne moída/frango + 250 g arroz ou 300 g batata"],
-      ["Pré-treino", "150 g patinho/frango + 300-350 g batata/arroz"],
-      ["Pós-treino", "1 dose whey + 300 g arroz/batata"],
-      ["Última", "200 g carne/frango/ovos + 150 g arroz/batata"],
+      ["Café sólido", "1 dose whey Integral Médica + 1 pão francês + 2 ovos"],
+      ["Almoço", "150 g frango/patinho/carne magra + 120 g arroz cozido + 10 g azeite"],
+      ["Refeição treino", "150 g frango/patinho + 160 g arroz cozido"],
+      ["Whey 2", "1 dose whey Integral Médica + 100 g arroz cozido ou 150-200 g batata"],
+      ["Jantar/ceia", "150 g frango/carne/ovos; sem arroz, ou 80-100 g arroz se treino/fome pedir"],
     ],
     totals: {
-      proteina: "180-190 g",
-      carbo: "260 g",
-      gordura: "60-65 g",
-      fibra: "psyllium opcional",
-      whey: "1 dose",
+      proteina: "175-185 g",
+      carbo: "150-180 g",
+      gordura: "65-75 g",
+      fibra: "10 g psyllium",
+      whey: "2 doses Integral Médica",
       cardio: "30-35 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
@@ -53,28 +53,28 @@ const phases = [
     start: 16,
     end: 30,
     title: "Fase 2",
-    goal: "Apertar o déficit sem derrubar carga, libido ou sono.",
+    goal: "Apertar o déficit tirando carbo fora do treino, sem derrubar carga, libido ou sono.",
     macros: {
-      proteina: "185-195 g",
-      carbo: "225 g",
-      gordura: "55-60 g",
-      kcal: "~2.300",
+      proteina: "175-185 g",
+      carbo: "130-160 g",
+      gordura: "65-75 g",
+      kcal: "~2.000-2.150",
       cardio: "35-40 min",
       agua: "4-5 L",
     },
     meals: [
-      ["Refeição 1", "1 dose whey + 220 g batata ou 170 g arroz"],
-      ["Refeição 2", "200 g carne moída/frango + 220 g arroz ou 260 g batata"],
-      ["Pré-treino", "150 g patinho/frango + 280 g batata/arroz"],
-      ["Pós-treino", "1 dose whey + 260 g arroz/batata"],
-      ["Última", "200 g carne/frango/ovos + 100 g arroz/batata"],
+      ["Café sólido", "1 dose whey Integral Médica + 1 pão francês + 2 ovos"],
+      ["Almoço", "150 g frango/patinho/carne magra + 100 g arroz cozido + 10 g azeite"],
+      ["Refeição treino", "150 g frango/patinho + 140 g arroz cozido"],
+      ["Whey 2", "1 dose whey Integral Médica + 80-100 g arroz cozido ou 150 g batata"],
+      ["Jantar/ceia", "150 g frango/carne/ovos; sem arroz, ou 80 g arroz se treino/fome pedir"],
     ],
     totals: {
-      proteina: "185-195 g",
-      carbo: "225 g",
-      gordura: "55-60 g",
-      fibra: "psyllium opcional",
-      whey: "1 dose",
+      proteina: "175-185 g",
+      carbo: "130-160 g",
+      gordura: "65-75 g",
+      fibra: "10 g psyllium",
+      whey: "2 doses Integral Médica",
       cardio: "35-40 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
@@ -86,28 +86,28 @@ const phases = [
     start: 31,
     end: 45,
     title: "Fase 3",
-    goal: "Finalizar mais seco, mantendo carbo perto do treino e recuperando o suficiente.",
+    goal: "Finalizar mais seco, com carbo quase todo perto do treino e noite mais limpa.",
     macros: {
-      proteina: "190 g",
-      carbo: "200-210 g",
-      gordura: "50-55 g",
-      kcal: "~2.150",
+      proteina: "175-185 g",
+      carbo: "110-140 g",
+      gordura: "70-80 g",
+      kcal: "~1.900-2.050",
       cardio: "40 min",
       agua: "4-5 L",
     },
     meals: [
-      ["Refeição 1", "1 dose whey + 200 g batata ou 150 g arroz"],
-      ["Refeição 2", "200 g carne moída/frango + 180 g arroz ou 230 g batata"],
-      ["Pré-treino", "150 g patinho/frango + 260 g batata/arroz"],
-      ["Pós-treino", "1 dose whey + 250 g arroz/batata"],
-      ["Última", "200 g carne/frango/ovos sem carbo, ou 80 g arroz se o sono cair"],
+      ["Café sólido", "1 dose whey Integral Médica + 1 pão francês + 2 ovos"],
+      ["Almoço", "150 g frango/patinho/carne magra + 80-100 g arroz cozido + 10 g azeite"],
+      ["Refeição treino", "150 g frango/patinho + 120 g arroz cozido"],
+      ["Whey 2", "1 dose whey Integral Médica + 0-80 g arroz cozido se treino pedir"],
+      ["Jantar/ceia", "150 g frango/carne/ovos, sem arroz"],
     ],
     totals: {
-      proteina: "190 g",
-      carbo: "200-210 g",
-      gordura: "50-55 g",
-      fibra: "psyllium opcional",
-      whey: "1 dose",
+      proteina: "175-185 g",
+      carbo: "110-140 g",
+      gordura: "70-80 g",
+      fibra: "10 g psyllium",
+      whey: "2 doses Integral Médica",
       cardio: "40 min",
       sono: "7,5-9 h",
       agua: "4-5 L",
@@ -117,6 +117,7 @@ const phases = [
 ];
 
 const baseHabitChecks = [
+  ["fibra", "Psyllium", "10 g no dia, longe das vitaminas/remédios e com bastante água."],
   ["cardio", "Cardio", "Moderado e dentro da meta da fase."],
   ["sono", "Sono", "Meta de 7,5-9 horas."],
 ];
@@ -745,7 +746,7 @@ function renderMacroCards(phase, day, selectedDate) {
 function nextRefeedInfo(day) {
   const next = REFEED_DAYS.find((refeedDay) => refeedDay >= day);
   if (REFEED_DAYS.includes(day)) {
-    return { short: "Hoje", detail: "+50-80 g carbo se performance pedir" };
+    return { short: "Hoje", detail: "+50-80 g carbo só se treino/performance pedir" };
   }
   if (next) {
     const distance = next - day;
@@ -754,7 +755,7 @@ function nextRefeedInfo(day) {
       detail: `em ${distance} dia${distance === 1 ? "" : "s"}`,
     };
   }
-  return { short: "Livre", detail: "ajuste só por peso/cintura/performance" };
+  return { short: "Livre", detail: "ajuste só por peso, cintura e performance" };
 }
 
 function trainingForDate(isoDate) {
@@ -827,13 +828,13 @@ function mealsForDate(phase, isoDate) {
   const training = trainingForDate(isoDate);
   const schedule = mealScheduleForTraining(training);
 
-  return schedule.map(({ index, title, time }) => {
-    const [baseTitle, detail] = phase.meals[index];
+  return schedule.map(({ index, title, time, detail }) => {
+    const [baseTitle, baseDetail] = phase.meals[index];
 
     return {
       id: `meal-${index}`,
       title: title || baseTitle,
-      detail,
+      detail: detail || baseDetail,
       time,
     };
   });
@@ -842,43 +843,52 @@ function mealsForDate(phase, isoDate) {
 function mealScheduleForTraining(training) {
   if (training.value === "10h") {
     return [
-      { index: 0, time: "07h00" },
-      { index: 2, title: "Pré-treino", time: training.preWindow },
-      { index: 3, title: "Pós-treino", time: training.postWindow },
-      { index: 1, time: "14h00" },
-      { index: 4, time: "20h00-21h00" },
+      { index: 0, title: "Café/pre-treino", time: "08h00" },
+      { index: 3, title: "Pós-treino", time: training.postWindow || "após 11h" },
+      { index: 1, title: "Almoço", time: "13h30" },
+      { index: 2, title: "Refeição 4", time: "17h30" },
+      { index: 4, title: "Jantar", time: "20h30" },
     ];
   }
 
   if (training.value === "20h") {
     return [
-      { index: 0, time: "08h00" },
+      { index: 0, title: "Café sólido", time: "08h00" },
       { index: 1, time: "12h30" },
-      { index: 2, title: "Pré-treino", time: training.preWindow },
-      { index: 3, title: "Pós-treino", time: training.postWindow },
+      { index: 2, title: "Pré-treino", time: training.preWindow || "18h30-19h30" },
+      { index: 3, title: "Pós-treino", time: training.postWindow || "após 21h" },
       { index: 4, time: "22h30" },
     ];
   }
 
   return [
-    { index: 0, time: "08h00" },
-    { index: 1, time: "12h00" },
-    { index: 2, title: "Refeição 3", time: "15h30" },
-    { index: 3, title: "Refeição 4", time: "19h00" },
-    { index: 4, time: "21h30" },
+    { index: 0, title: "Café sólido", time: "08h00" },
+    { index: 1, title: "Almoço", time: "12h30" },
+    {
+      index: 2,
+      title: "Refeição 3",
+      time: "16h30",
+      detail: "150 g frango/patinho + 80-120 g arroz cozido, ou sem arroz se descanso total",
+    },
+    { index: 3, title: "Whey 2", time: "19h00", detail: "1 dose whey Integral Médica" },
+    { index: 4, title: "Jantar/ceia", time: "21h30" },
   ];
 }
 
 function focusTextForDay(day, training) {
   if (!training.hasTraining) {
-    return "Sem musculação programada hoje. Mantenha dieta, caminhada leve, água e sono para não perder ritmo.";
+    return "Dia sem musculação: mantenha 2 wheys, café sólido, psyllium e carbo menor fora do treino.";
   }
 
-  if (day >= 31) {
-    return `${training.title} às ${training.value}: concentre carbo no pré e pós, mantenha o resto do dia limpo e preserve a carga.`;
+  if (training.value === "10h") {
+    return "Treino às 10h: café das 08h vira pré-treino; use o whey 2 no pós e segure carbo à noite.";
   }
 
-  return `${training.title} às ${training.value}: cumpra pré e pós com calma, faça o cardio da fase e mantenha água alta.`;
+  if (training.value === "20h") {
+    return "Treino às 20h: café sólido às 08h, almoço normal, pré às 18h30-19h30 e whey 2 no pós.";
+  }
+
+  return `${training.title}: mantenha 2 wheys, carbo perto do treino, água alta e psyllium longe das vitaminas/remédios.`;
 }
 
 function renderChecks(phase, entry, selectedDate) {
@@ -1067,6 +1077,7 @@ function renderDailyTotals(phase, day, selectedDate) {
   const totals = [
     ["Treino", `${training.value} · ${training.title}`],
     ["Proteína", phase.totals.proteina],
+    ["Whey", phase.totals.whey],
     ["Carbo", phase.totals.carbo],
     ["Gordura", phase.totals.gordura],
     ["Cardio", phase.totals.cardio],
