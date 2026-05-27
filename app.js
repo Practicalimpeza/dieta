@@ -245,15 +245,17 @@ const heavyTrainingWeekdays = new Set([1, 2, 3, 4, 5, 6]);
 const rotatingTrainingTemplates = [1, 2, 3, 5, 6].map((weekday) => trainingPlanByWeekday[weekday]);
 const specialTrainingDates = {
   "2026-05-26": {
-    title: "Pré-exame",
+    title: "Ombros moderado",
     time: "20h",
-    detail: "descanso ou caminhada",
-    focus: "Sem treino pesado, sem falha e sem cardio intenso para não sujar o exame de amanhã.",
+    detail: "pré-exame",
+    focus: "Ombro completo com intensidade média, sem falha e sem cardio forte para não sujar o exame de amanhã.",
     preWindow: "",
     postWindow: "",
     exercises: [
-      ["caminhada-leve", "Caminhada leve opcional", "15-25 min", "sem cansar"],
-      ["descanso-pre-exame", "Descanso", "prioridade", "hidratar e dormir"],
+      ["desenvolvimento-moderado", "Desenvolvimento halter/máquina", "3x8-10", "moderado"],
+      ["elevacao-lateral-moderada", "Elevação lateral", "3x12-20", "controle"],
+      ["crucifixo-inverso-moderado", "Crucifixo inverso", "3x12-20", "posterior"],
+      ["caminhada-10min", "Caminhada leve", "10 min", "sem cansar"],
     ],
   },
   "2026-05-27": {
