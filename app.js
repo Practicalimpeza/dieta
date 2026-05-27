@@ -689,6 +689,7 @@ function render() {
 
 function renderActiveTab() {
   const activeTab = validTab(state.activeTab);
+  document.body.dataset.activeTab = activeTab;
   if (els.workspace) els.workspace.dataset.activeTab = activeTab;
 
   els.tabButtons.forEach((button) => {
@@ -945,11 +946,11 @@ function exerciseRow(exercise, trainingEntry) {
         hasLoadReps
           ? `
             <label class="exercise-input">
-              <span>Carga opc.</span>
+              <span>Carga</span>
               <input data-training-load="${exercise.id}" type="text" inputmode="decimal" placeholder="kg" value="${escapeHTML(trainingEntry.load[exercise.id])}" />
             </label>
             <label class="exercise-input">
-              <span>Reps opc.</span>
+              <span>Reps</span>
               <input data-training-reps="${exercise.id}" type="text" inputmode="numeric" placeholder="última" value="${escapeHTML(trainingEntry.reps[exercise.id])}" />
             </label>
           `
