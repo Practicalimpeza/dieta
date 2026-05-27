@@ -281,6 +281,7 @@ let state = loadState();
 let syncTimer = null;
 let syncInFlight = false;
 let syncAgain = false;
+let lastKnownPlanDay = null;
 
 cleanVersionParam();
 
@@ -421,6 +422,7 @@ async function loadCloudState() {
 
   if (rows?.[0]?.state) {
     state = mergeStates(state, rows[0].state);
+    syncSelectedDayToToday({ force: true, renderAfter: false });
     saveState({ cloud: false });
     render();
   }
@@ -564,6 +566,17 @@ function dayForDate(isoDate) {
 
 function todayPlanDay() {
   return clampDay(dayForDate(toISO(new Date())));
+}
+
+function syncSelectedDayToToday(options = {}) {
+  const current = todayPlanDay();
+  const shouldMove = options.force || state.selectedDay === lastKnownPlanDay;
+  lastKnownPlanDay = current;
+
+  if (!shouldMove || state.selectedDay === current) return;
+  state.selectedDay = current;
+  saveState({ cloud: false });
+  if (options.renderAfter !== false) render();
 }
 
 function clampDay(day) {
@@ -1979,9 +1992,12 @@ els.todayBtn.addEventListener("click", () => {
   render();
 });
 
+syncSelectedDayToToday({ force: true, renderAfter: false });
 saveState({ cloud: false });
 render();
 bootCloudSync();
+
+window.setInterval(() => syncSelectedDayToToday(), 60 * 1000);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
